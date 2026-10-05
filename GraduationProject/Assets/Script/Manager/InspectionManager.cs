@@ -20,6 +20,8 @@ public class InspectionManager : MonoBehaviour
 
     [Header("鑑定アイテム配置位置（鑑定台）")]
     [SerializeField] private Transform inspectionTablePos;
+    [SerializeField] private bool centerItemToBounds = true; // お宝モデルの中心（バウンディングボックス中心）に合わせるか
+    [SerializeField] private Vector3 inspectionOffset = Vector3.zero; // 配置の微調整用オフセット
 
     [Header("鑑定中のカメラ特定位置")]
     [SerializeField] private Transform inspectionCameraPos;
@@ -125,6 +127,30 @@ public class InspectionManager : MonoBehaviour
                 currentInspectingItem = Instantiate(itemPrefab, inspectionTablePos.position, inspectionTablePos.rotation);
                 currentInspectingItem.transform.SetParent(inspectionTablePos);
                 currentInspectingItem.transform.localPosition = Vector3.zero; // 鑑定台の中心にピタッと固定
+
+                // お宝の見た目の中心（Z軸含むバウンディングボックス中心）に合わせる補正
+                if (centerItemToBounds)
+                {
+                    Renderer[] renderers = currentInspectingItem.GetComponentsInChildren<Renderer>();
+                    if (renderers.Length > 0)
+                    {
+                        Bounds bounds = renderers[0].bounds;
+                        for (int i = 1; i < renderers.Length; i++)
+                        {
+                            bounds.Encapsulate(renderers[i].bounds);
+                        }
+                        Vector3 localCenter = inspectionTablePos.InverseTransformPoint(bounds.center);
+                        currentInspectingItem.transform.localPosition = -localCenter + inspectionOffset;
+                    }
+                    else
+                    {
+                        currentInspectingItem.transform.localPosition = inspectionOffset;
+                    }
+                }
+                else
+                {
+                    currentInspectingItem.transform.localPosition = inspectionOffset;
+                }
             }
             else
             {

@@ -10,6 +10,9 @@ public class ItemInspectController : MonoBehaviour
     [Header("回転速度")]
     [SerializeField] private float rotationSpeed = 5.0f;
 
+    [Header("上下回転の反転")]
+    [SerializeField] private bool invertY = true;
+
     [Header("マウスホイールによる拡大縮小を有効にするか")]
     [SerializeField] private bool enableZoom = true;
 
@@ -47,9 +50,11 @@ public class ItemInspectController : MonoBehaviour
             float xDelta = Input.GetAxis("Mouse X") * rotationSpeed;
             float yDelta = Input.GetAxis("Mouse Y") * rotationSpeed;
 
+            float yRotation = invertY ? -yDelta : yDelta;
+
             // カメラ・世界軸に合わせて360度スムーズ回転
             transform.Rotate(Vector3.up, -xDelta, Space.World);
-            transform.Rotate(Vector3.right, yDelta, Space.World);
+            transform.Rotate(Vector3.right, yRotation, Space.World);
         }
 
         // 【マウスホイールで拡大・縮小（ズーム）】
