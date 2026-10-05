@@ -7,21 +7,19 @@ using UnityEngine;
 /// </summary>
 public class ItemInspectController : MonoBehaviour
 {
-    [Header("回転機能設定")]
-    [Tooltip("マウスドラッグ時の回転感度")]
+    [Header("回転速度")]
     [SerializeField] private float rotationSpeed = 5.0f;
 
-    [Header("拡大縮小（ズーム）機能設定")]
-    [Tooltip("マウスホイールによる拡大縮小を有効にするか")]
+    [Header("マウスホイールによる拡大縮小を有効にするか")]
     [SerializeField] private bool enableZoom = true;
 
-    [Tooltip("マウスホイール回転時の拡大縮小スピード（感度）")]
+    [Header("マウスホイール回転時の拡大縮小スピード")]
     [SerializeField] private float zoomSpeed = 2.0f;
 
-    [Tooltip("最小スケール倍率（初期サイズの何倍まで小さくできるか）")]
+    [Header("最小スケール倍率")]
     [SerializeField] private float minScaleMultiplier = 0.3f;
 
-    [Tooltip("最大スケール倍率（初期サイズの何倍まで大きくできるか）")]
+    [Header("最大スケール倍率")]
     [SerializeField] private float maxScaleMultiplier = 3.0f;
 
     private bool isInspecting = true;

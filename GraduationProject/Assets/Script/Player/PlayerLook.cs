@@ -39,14 +39,14 @@ public class PlayerLook : MonoBehaviour
     {
         if (crosshairText != null) return;
 
-        // 1. 名前 "CrosshairText" で検索
+        // CrosshairTextで検索
         GameObject textObj = GameObject.Find("CrosshairText");
         if (textObj != null)
         {
             crosshairText = textObj.GetComponent<Text>();
         }
 
-        // 2. 見つからなければ Canvas 内の Text を自動検索
+        //見つからなかったら、名前に "crosshair" や "interact" を含むTextを検索
         if (crosshairText == null)
         {
             Text[] allTexts = FindObjectsOfType<Text>(true);
@@ -103,7 +103,7 @@ public class PlayerLook : MonoBehaviour
         RaycastHit hit;
         if (Physics.Raycast(ray, out hit, rayDistance))
         {
-            // 1. お客さん（Customer）判定
+            //お客さん判定
             int customerLayer = LayerMask.NameToLayer("Customer");
             if (customerLayer != -1 && hit.collider.gameObject.layer == customerLayer)
             {
@@ -133,12 +133,12 @@ public class PlayerLook : MonoBehaviour
                 }
             }
 
-            // 2. お宝（ItemData）判定：親・自身・子から柔軟に検索
+            // お宝判定の検索
             ItemData treasure = hit.collider.GetComponent<ItemData>();
             if (treasure == null) treasure = hit.collider.GetComponentInParent<ItemData>();
             if (treasure == null) treasure = hit.collider.GetComponentInChildren<ItemData>();
 
-            // ItemDataコンポーネントが存在するか、またはオブジェクト名にお宝関連キーワードが含まれる場合（未定義タグエラー回避）
+            // ItemDataコンポーネントが存在するか、またはオブジェクト名にお宝関連キーワードが含まれる場合
             string objName = hit.collider.gameObject.name.ToLower();
             bool isTreasureItem = (treasure != null) ||
                                   objName.Contains("treasure") ||
