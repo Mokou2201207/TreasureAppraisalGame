@@ -18,6 +18,12 @@ public class InspectionManager : MonoBehaviour
     [Header("背景暗転・UI用パネル")]
     [SerializeField] private GameObject blurOrDarkPanel;
 
+    [Header("鑑定情報表示用UIテキスト")]
+    [SerializeField] private Text itemDescriptionText;
+    [SerializeField] private Text itemCustomerDescriptionText;
+    [SerializeField] private Text appraisalMission1Text;
+    [SerializeField] private Text appraisalMission2Text;
+
     [Header("鑑定アイテム配置位置（鑑定台）")]
     [SerializeField] private Transform inspectionTablePos;
     [SerializeField] private bool centerItemToBounds = true; // お宝モデルの中心（バウンディングボックス中心）に合わせるか
@@ -182,6 +188,12 @@ public class InspectionManager : MonoBehaviour
             }
             inspectController.SetZoomSettings(zoomSpeed, minScaleMultiplier, maxScaleMultiplier, enableZoom);
             inspectController.StartInspect();
+
+            // ItemDataのテキスト情報をUIに表示
+            ItemData itemData = itemPrefab != null ? itemPrefab.GetComponent<ItemData>() : null;
+            if (itemData == null && itemPrefab != null) itemData = itemPrefab.GetComponentInParent<ItemData>();
+            if (itemData == null && itemPrefab != null) itemData = itemPrefab.GetComponentInChildren<ItemData>();
+            UpdateInspectionUI(itemData);
         }
     }
 
@@ -205,6 +217,9 @@ public class InspectionManager : MonoBehaviour
         {
             blurOrDarkPanel.SetActive(false);
         }
+
+        // UIテキストの表示クリア
+        ClearInspectionUI();
 
         // カメラを元のプレイヤー位置へ復帰
         ReturnCameraToOriginalPosition();
@@ -374,5 +389,29 @@ public class InspectionManager : MonoBehaviour
         {
             EndInspection();
         }
+    }
+
+    /// <summary>
+    /// ItemDataのテキスト情報をレガシーUI Textに反映
+    /// </summary>
+    private void UpdateInspectionUI(ItemData itemData)
+    {
+        if (itemData == null) return;
+
+        if (itemDescriptionText != null) itemDescriptionText.text = itemData.itemDescription;
+        if (itemCustomerDescriptionText != null) itemCustomerDescriptionText.text = itemData.itemCustomerDescription;
+        if (appraisalMission1Text != null) appraisalMission1Text.text = itemData.appraisalMission1;
+        if (appraisalMission2Text != null) appraisalMission2Text.text = itemData.appraisalMission2;
+    }
+
+    /// <summary>
+    /// 鑑定UIテキストのクリア
+    /// </summary>
+    private void ClearInspectionUI()
+    {
+        if (itemDescriptionText != null) itemDescriptionText.text = string.Empty;
+        if (itemCustomerDescriptionText != null) itemCustomerDescriptionText.text = string.Empty;
+        if (appraisalMission1Text != null) appraisalMission1Text.text = string.Empty;
+        if (appraisalMission2Text != null) appraisalMission2Text.text = string.Empty;
     }
 }
