@@ -63,6 +63,10 @@ public class InspectionManager : MonoBehaviour
     [SerializeField] private bool smoothCameraMove = true;      // スムーズな補間移動を行うか
     [SerializeField] private float cameraMoveSpeed = 6.0f;       // カメラ移動スピード
 
+    [Header("交渉時のカメラ設定")]
+    [Tooltip("お客さんの顔の高さオフセット")]
+    [SerializeField] private float customerFaceHeightOffset = 1.6f;
+
     [Header("お宝の回転・拡大縮小（ズーム）インスペクター設定")]
     [Tooltip("マウスドラッグ時の回転感度")]
     [SerializeField] private float rotationSpeed = 5.0f;
@@ -138,6 +142,12 @@ public class InspectionManager : MonoBehaviour
 
         // クロスヘアテキストをクリア
         if (crosshairText != null) crosshairText.text = "";
+
+        // 鑑定開始時に交渉パネルを非表示
+        if (NegotiationManager.Instance != null)
+        {
+            NegotiationManager.Instance.HideAppraisalAcceptancePanel();
+        }
 
         // 1. プレイヤーの移動・視点移動を停止
         SetPlayerControlsActive(false);
@@ -251,15 +261,16 @@ public class InspectionManager : MonoBehaviour
         // UIテキストの表示クリア
         ClearInspectionUI();
 
-        // カメラを元のプレイヤー位置へ復帰
-        ReturnCameraToOriginalPosition();
+        // カメラをお客さんの顔付近に向ける
+        LookAtCurrentCustomerFace();
 
-        // プレイヤーの移動・視点移動を再開
-        SetPlayerControlsActive(true);
+        // 交渉中はプレイヤーの移動・視点移動を無効のままにする
 
-        // マウスカーソルを固定
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
+        // 交渉用パネルを表示
+        if (NegotiationManager.Instance != null)
+        {
+            NegotiationManager.Instance.ShowAppraisalAcceptancePanel();
+        }
     }
 
     /// <summary>
@@ -291,6 +302,18 @@ public class InspectionManager : MonoBehaviour
         {
             Debug.Log("[InspectionManager] 購入処理を実行しましたが、レジ前のお客さんが見つかりませんでした。");
         }
+
+        // 取引完了時に交渉パネルを非表示
+        if (NegotiationManager.Instance != null)
+        {
+            NegotiationManager.Instance.HideAppraisalAcceptancePanel();
+        }
+
+        // カメラを元の位置へ戻す
+        ReturnCameraToOriginalPosition();
+
+        // プレイヤーの移動と視点操作を再開
+        SetPlayerControlsActive(true);
     }
 
     /// <summary>
@@ -335,6 +358,41 @@ public class InspectionManager : MonoBehaviour
         if (lookAtInspectionTable && inspectionTablePos != null)
         {
             Vector3 dir = (inspectionTablePos.position - targetPos).normalized;
+            if (dir != Vector3.zero)
+            {
+                targetRot = Quaternion.LookRotation(dir);
+            }
+        }
+
+        if (cameraMoveCoroutine != null) StopCoroutine(cameraMoveCoroutine);
+
+        if (smoothCameraMove)
+        {
+            cameraMoveCoroutine = StartCoroutine(AnimateCamera(targetPos, targetRot));
+        }
+        else
+        {
+            mainCamera.transform.position = targetPos;
+            mainCamera.transform.rotation = targetRot;
+        }
+    }
+
+    /// <summary>
+    /// カメラをお客さんの顔付近に向ける
+    /// </summary>
+    private void LookAtCurrentCustomerFace()
+    {
+        if (mainCamera == null) mainCamera = Camera.main;
+        if (mainCamera == null) return;
+
+        MoveWaypoint customer = FindCurrentCustomer();
+        Vector3 targetPos = savedCameraPos;
+        Quaternion targetRot = savedCameraRot;
+
+        if (customer != null)
+        {
+            Vector3 customerFacePos = customer.transform.position + Vector3.up * customerFaceHeightOffset;
+            Vector3 dir = (customerFacePos - targetPos).normalized;
             if (dir != Vector3.zero)
             {
                 targetRot = Quaternion.LookRotation(dir);
@@ -410,12 +468,8 @@ public class InspectionManager : MonoBehaviour
     private void Update()
     {
         // 1. Enterキー押下で「購入・買い取り決定＆お宝回収＆お客さん帰宅」処理
-        if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
-        {
-            BuyItemAndFinishCustomer();
-        }
         // 2. 右クリックまたはESCでキャンセル/鑑定終了
-        else if (isInspecting && Input.GetMouseButtonDown(1))
+        if (isInspecting && Input.GetMouseButtonDown(1))
         {
             EndInspection();
         }
