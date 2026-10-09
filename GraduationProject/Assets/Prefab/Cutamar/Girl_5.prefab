@@ -867,8 +867,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   itemList:
-  - {fileID: 5744401535643898786, guid: 1b34e14a95d12e74d86b749ed42f1b1b, type: 3}
   - {fileID: 4367424571762002097, guid: b5aa7d22818cfd443b09201733750085, type: 3}
   - {fileID: 3149203889887882826, guid: 1b4489ed327095348abdac534f1f7575, type: 3}
   - {fileID: 5671832282889584838, guid: ac1e11bdbaa417541808a0118686f74a, type: 3}
   currentItem: {fileID: 0}
+  isItemDropped: 0

@@ -19,15 +19,26 @@ public class ItemData : MonoBehaviour
     [Header("アイテムの名称")]
     public ItemCategory itemName;
 
-    [Header("アイテムの説明"), SerializeField, TextArea(3, 5)]
+    [Header("アイテムの説明")]
     public string itemDescription;
-    [Header("お客さんからのアイテムの説明"), SerializeField, TextArea(3, 5)]
+    [Header("お客さんからのアイテムの説明")]
     public string itemCustomerDescription;
 
-    [Header("鑑定オリジナルミッション①"), SerializeField, TextArea(3, 5)]
+    [Header("鑑定オリジナルミッション①")]
     public string appraisalMission1;
-    [Header("鑑定オリジナルミッション②"), SerializeField, TextArea(3, 5)]
+    [Header("鑑定オリジナルミッション②")]
     public string appraisalMission2;
+
+    [Header("基本最高金額の値段")]
+    public float highestPrice;
+    [Header("傷がついていた場合のマイナス値段")]
+    public float damagedPrice;
+    [Header("情報が違う場合のマイナス値段")]
+    public float customerDescriptionPrice;
+    [Header("鑑定オリジナルミッションの値段")]
+    public float isCustomerDescriptionPrice1;
+    [Header("鑑定オリジナルミッションの値段")]
+    public float isCustomerDescriptionPrice2;
 
     [Header("傷がついているか"), SerializeField]
     public bool isDamaged = false;
@@ -54,6 +65,21 @@ public class ItemData : MonoBehaviour
                 itemDescription = "江戸時代後期のものと思われる、素朴な土肌の古い壺。\n表面に幾重ものスレや傷があり、使い込まれた歴史を感じさせる。";
                 appraisalMission1 = "雑に修復された「金継ぎ」や接着跡がないか見極める";
                 appraisalMission2 = "全体に付着したカビ・錆の広がり具合を確認する";
+                //最高金額
+                highestPrice = 10000f;
+                string priceText1 = highestPrice.ToString("N0") + "$";
+                //傷つきのマイナス値段
+                damagedPrice = -2000f;
+                string priceText2 = highestPrice.ToString("N0") + "$";
+                //情報が違う場合のマイナス値段
+                customerDescriptionPrice = -500f;
+                string priceText3 = highestPrice.ToString("N0") + "$";
+                //鑑定オリジナルミッションの値段
+                isCustomerDescriptionPrice1 = -1500f;
+                string priceText4 = highestPrice.ToString("N0") + "$";
+                //鑑定オリジナルミッションの値段
+                isCustomerDescriptionPrice2 = -2000f;
+                string priceText5 = highestPrice.ToString("N0") + "$";
                 break;
 
             case ItemCategory.ヨーロッパ風の壺:

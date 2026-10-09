@@ -46,24 +46,6 @@ public class PlayerLook : MonoBehaviour
             crosshairText = textObj.GetComponent<Text>();
         }
 
-        //見つからなかったら、名前に "crosshair" や "interact" を含むTextを検索
-        if (crosshairText == null)
-        {
-            Text[] allTexts = FindObjectsOfType<Text>(true);
-            foreach (var t in allTexts)
-            {
-                if (t.name.ToLower().Contains("crosshair") || t.name.ToLower().Contains("interact") || t.name.ToLower().Contains("aim") || t.name.ToLower().Contains("text"))
-                {
-                    crosshairText = t;
-                    break;
-                }
-            }
-            if (crosshairText == null && allTexts.Length > 0)
-            {
-                crosshairText = allTexts[0];
-            }
-        }
-
         if (crosshairText == null)
         {
             Debug.LogWarning("[PlayerLook] クロスヘア用のTextが見つかりません。Canvas内にTextを作成し名前を 'CrosshairText' にするか、Inspectorでアタッチしてください。");
@@ -77,13 +59,6 @@ public class PlayerLook : MonoBehaviour
         {
             if (crosshairText != null) crosshairText.text = "";
             return;
-        }
-
-        // カメラが未設定の場合、MainCameraを自動取得
-        if (playerCamera == null)
-        {
-            if (Camera.main != null) playerCamera = Camera.main.transform;
-            else return;
         }
 
         // 毎フレームのテキスト表示を初期化
@@ -147,12 +122,14 @@ public class PlayerLook : MonoBehaviour
 
             if (isTreasureItem)
             {
-                if (crosshairText != null)
+                bool isCurrentlyInspecting = InspectionManager.Instance != null && InspectionManager.Instance.IsInspecting;
+
+                if (crosshairText != null && !isCurrentlyInspecting)
                 {
                     crosshairText.text = "鑑定(左クリック)";
                 }
 
-                if (Input.GetMouseButtonDown(0))
+                if (Input.GetMouseButtonDown(0) && !isCurrentlyInspecting)
                 {
                     if (InspectionManager.Instance != null)
                     {

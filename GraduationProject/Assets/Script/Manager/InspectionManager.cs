@@ -18,11 +18,37 @@ public class InspectionManager : MonoBehaviour
     [Header("背景暗転・UI用パネル")]
     [SerializeField] private GameObject blurOrDarkPanel;
 
+    [Header("クロスヘア用テキスト")]
+    [SerializeField] private Text crosshairText;
+
     [Header("鑑定情報表示用UIテキスト")]
     [SerializeField] private Text itemDescriptionText;
     [SerializeField] private Text itemCustomerDescriptionText;
     [SerializeField] private Text appraisalMission1Text;
     [SerializeField] private Text appraisalMission2Text;
+
+    [Header("鑑定金額表示用UIテキスト")]
+    [SerializeField] private Text highestPriceText;
+    [SerializeField] private Text damagedPriceText;
+    [SerializeField] private Text customerDescriptionPriceText;
+    [SerializeField] private Text mission1PriceText;
+    [SerializeField] private Text mission2PriceText;
+    [SerializeField] private Text finalPriceText;
+
+    [Header("減額判定用丸ボタン (Button + 丸表示)")]
+    [SerializeField] private Button damagedButton;
+    [SerializeField] private GameObject damagedCircleMark;
+    [SerializeField] private Button customerDescriptionButton;
+    [SerializeField] private GameObject customerDescriptionCircleMark;
+    [SerializeField] private Button mission1Button;
+    [SerializeField] private GameObject mission1CircleMark;
+    [SerializeField] private Button mission2Button;
+    [SerializeField] private GameObject mission2CircleMark;
+
+    private ItemData currentItemData;
+    public ItemData CurrentItemData => currentItemData;
+    private float currentCalculatedPrice;
+    public float CurrentCalculatedPrice => currentCalculatedPrice;
 
     [Header("鑑定アイテム配置位置（鑑定台）")]
     [SerializeField] private Transform inspectionTablePos;
@@ -50,7 +76,7 @@ public class InspectionManager : MonoBehaviour
     [SerializeField] private float maxScaleMultiplier = 3.0f;
 
     private GameObject currentInspectingItem;
-    private bool isInspecting = false;
+    public bool isInspecting = false;
 
     // カメラ元の位置・回転の保持用
     private Camera mainCamera;
@@ -81,6 +107,7 @@ public class InspectionManager : MonoBehaviour
     private void Start()
     {
         AutoFindPlayerComponents();
+        SetupButtonListeners();
     }
 
     /// <summary>
@@ -108,6 +135,9 @@ public class InspectionManager : MonoBehaviour
         isInspecting = true;
 
         AutoFindPlayerComponents();
+
+        // クロスヘアテキストをクリア
+        if (crosshairText != null) crosshairText.text = "";
 
         // 1. プレイヤーの移動・視点移動を停止
         SetPlayerControlsActive(false);
@@ -385,7 +415,7 @@ public class InspectionManager : MonoBehaviour
             BuyItemAndFinishCustomer();
         }
         // 2. 右クリックまたはESCでキャンセル/鑑定終了
-        else if (isInspecting && (Input.GetKeyDown(KeyCode.Escape) || Input.GetMouseButtonDown(1)))
+        else if (isInspecting && Input.GetMouseButtonDown(1))
         {
             EndInspection();
         }
@@ -398,10 +428,25 @@ public class InspectionManager : MonoBehaviour
     {
         if (itemData == null) return;
 
+        currentItemData = itemData;
+
         if (itemDescriptionText != null) itemDescriptionText.text = itemData.itemDescription;
         if (itemCustomerDescriptionText != null) itemCustomerDescriptionText.text = itemData.itemCustomerDescription;
         if (appraisalMission1Text != null) appraisalMission1Text.text = itemData.appraisalMission1;
         if (appraisalMission2Text != null) appraisalMission2Text.text = itemData.appraisalMission2;
+
+        if (highestPriceText != null) highestPriceText.text = itemData.highestPrice.ToString("N0") + "$";
+        if (damagedPriceText != null) damagedPriceText.text = itemData.damagedPrice.ToString("N0") + "$";
+        if (customerDescriptionPriceText != null) customerDescriptionPriceText.text = itemData.customerDescriptionPrice.ToString("N0") + "$";
+        if (mission1PriceText != null) mission1PriceText.text = itemData.isCustomerDescriptionPrice1.ToString("N0") + "$";
+        if (mission2PriceText != null) mission2PriceText.text = itemData.isCustomerDescriptionPrice2.ToString("N0") + "$";
+
+        if (damagedCircleMark != null) damagedCircleMark.SetActive(false);
+        if (customerDescriptionCircleMark != null) customerDescriptionCircleMark.SetActive(false);
+        if (mission1CircleMark != null) mission1CircleMark.SetActive(false);
+        if (mission2CircleMark != null) mission2CircleMark.SetActive(false);
+
+        CalculateTotalPrice();
     }
 
     /// <summary>
@@ -409,9 +454,89 @@ public class InspectionManager : MonoBehaviour
     /// </summary>
     private void ClearInspectionUI()
     {
+        currentItemData = null;
+
         if (itemDescriptionText != null) itemDescriptionText.text = string.Empty;
         if (itemCustomerDescriptionText != null) itemCustomerDescriptionText.text = string.Empty;
         if (appraisalMission1Text != null) appraisalMission1Text.text = string.Empty;
         if (appraisalMission2Text != null) appraisalMission2Text.text = string.Empty;
+
+        if (highestPriceText != null) highestPriceText.text = string.Empty;
+        if (damagedPriceText != null) damagedPriceText.text = string.Empty;
+        if (customerDescriptionPriceText != null) customerDescriptionPriceText.text = string.Empty;
+        if (mission1PriceText != null) mission1PriceText.text = string.Empty;
+        if (mission2PriceText != null) mission2PriceText.text = string.Empty;
+        if (finalPriceText != null) finalPriceText.text = string.Empty;
+
+        if (damagedCircleMark != null) damagedCircleMark.SetActive(false);
+        if (customerDescriptionCircleMark != null) customerDescriptionCircleMark.SetActive(false);
+        if (mission1CircleMark != null) mission1CircleMark.SetActive(false);
+        if (mission2CircleMark != null) mission2CircleMark.SetActive(false);
+    }
+
+    /// <summary>
+    /// ボタンのイベント設定
+    /// </summary>
+    private void SetupButtonListeners()
+    {
+        if (damagedButton != null)
+        {
+            damagedButton.onClick.AddListener(() =>
+            {
+                if (damagedCircleMark != null) damagedCircleMark.SetActive(!damagedCircleMark.activeSelf);
+                CalculateTotalPrice();
+            });
+        }
+        if (customerDescriptionButton != null)
+        {
+            customerDescriptionButton.onClick.AddListener(() =>
+            {
+                if (customerDescriptionCircleMark != null) customerDescriptionCircleMark.SetActive(!customerDescriptionCircleMark.activeSelf);
+                CalculateTotalPrice();
+            });
+        }
+        if (mission1Button != null)
+        {
+            mission1Button.onClick.AddListener(() =>
+            {
+                if (mission1CircleMark != null) mission1CircleMark.SetActive(!mission1CircleMark.activeSelf);
+                CalculateTotalPrice();
+            });
+        }
+        if (mission2Button != null)
+        {
+            mission2Button.onClick.AddListener(() =>
+            {
+                if (mission2CircleMark != null) mission2CircleMark.SetActive(!mission2CircleMark.activeSelf);
+                CalculateTotalPrice();
+            });
+        }
+    }
+
+    /// <summary>
+    /// 予測買取価格の自動計算およびUI反映
+    /// </summary>
+    public void CalculateTotalPrice()
+    {
+        if (currentItemData == null) return;
+
+        float total = currentItemData.highestPrice;
+
+        bool isDamagedChecked = damagedCircleMark != null && damagedCircleMark.activeSelf;
+        bool isCustomerDescChecked = customerDescriptionCircleMark != null && customerDescriptionCircleMark.activeSelf;
+        bool isMission1Checked = mission1CircleMark != null && mission1CircleMark.activeSelf;
+        bool isMission2Checked = mission2CircleMark != null && mission2CircleMark.activeSelf;
+
+        if (isDamagedChecked) total += currentItemData.damagedPrice;
+        if (isCustomerDescChecked) total += currentItemData.customerDescriptionPrice;
+        if (isMission1Checked) total += currentItemData.isCustomerDescriptionPrice1;
+        if (isMission2Checked) total += currentItemData.isCustomerDescriptionPrice2;
+
+        currentCalculatedPrice = total;
+
+        if (finalPriceText != null)
+        {
+            finalPriceText.text = total.ToString("N0") + "$";
+        }
     }
 }
