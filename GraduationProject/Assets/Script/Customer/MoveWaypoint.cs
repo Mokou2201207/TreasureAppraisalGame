@@ -27,7 +27,7 @@ public class MoveWaypoint : MonoBehaviour
     public int queuePositionNumber = 0;
 
     /// 経路が確定して移動中かどうか
-    private bool isMoving = false;
+    public bool isMoving = false;
     // 停止中かどうか（最終目的地に到着して完了した状態）
     public bool isStopped = false;
 
@@ -88,6 +88,7 @@ public class MoveWaypoint : MonoBehaviour
                 agent.isStopped = true;
                 agent.velocity = Vector3.zero;
             }
+            isMoving = false;
             return;
         }
         else
@@ -172,6 +173,7 @@ public class MoveWaypoint : MonoBehaviour
         // 列から離脱
         queuePositionNumber = -1;
         isStopped = false;
+        isMoving = false;
 
         if (agent != null && agent.enabled)
         {
@@ -226,6 +228,7 @@ public class MoveWaypoint : MonoBehaviour
     public void ResumeMove()
     {
         isStopped = false;
+        isMoving = false;
         if (agent != null && agent.enabled)
         {
             agent.isStopped = false;
@@ -307,6 +310,7 @@ public class MoveWaypoint : MonoBehaviour
     void StopAtTarget()
     {
         isStopped = true;
+        isMoving = false;
 
         // エージェントの移動を止める
         if (agent != null)

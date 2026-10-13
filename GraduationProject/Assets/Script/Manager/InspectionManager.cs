@@ -324,7 +324,7 @@ public class InspectionManager : MonoBehaviour
         MoveWaypoint[] customers = FindObjectsOfType<MoveWaypoint>();
         foreach (var c in customers)
         {
-            if (c.queuePositionNumber == 0 && c.isStopped)
+            if (c.queuePositionNumber == 0 && !c.isMoving)
             {
                 return c;
             }

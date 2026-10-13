@@ -673,6 +673,16 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
+    - target: {fileID: 5866666021909216657, guid: 234c2e08333a7774ab761ff4511d183b,
+        type: 3}
+      propertyPath: m_Avatar
+      value: 
+      objectReference: {fileID: 9000000, guid: f703ace01c396a94e83c854dc566fb77, type: 2}
+    - target: {fileID: 5866666021909216657, guid: 234c2e08333a7774ab761ff4511d183b,
+        type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 9100000, guid: 0a24f3497caa4c446ba7fd06a091a967, type: 2}
     - target: {fileID: 5963718662425824836, guid: 234c2e08333a7774ab761ff4511d183b,
         type: 3}
       propertyPath: m_Layer
@@ -788,6 +798,10 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: -8426909332974907895}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 234c2e08333a7774ab761ff4511d183b,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: -8032288614037072693}
   m_SourcePrefab: {fileID: 100100000, guid: 234c2e08333a7774ab761ff4511d183b, type: 3}
 --- !u!1 &8348744349585824750 stripped
 GameObject:
@@ -811,8 +825,9 @@ MonoBehaviour:
   agent: {fileID: 4039498861088238659, guid: 72fc8296970cd3b4d8704b4193771cef, type: 3}
   currentIndex: 0
   stopIndex: 1
-  stopDistanceToFrontCustomer: 0.5
+  stopDistanceToFrontCustomer: 1
   queuePositionNumber: 0
+  isMoving: 0
   isStopped: 0
 --- !u!195 &4915937092232526538
 NavMeshAgent:
@@ -877,3 +892,17 @@ MonoBehaviour:
   - {fileID: 5671832282889584838, guid: ac1e11bdbaa417541808a0118686f74a, type: 3}
   currentItem: {fileID: 0}
   isItemDropped: 0
+--- !u!114 &-8032288614037072693
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8348744349585824750}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 57226cc4af293424ebaa77fab9760481, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  moveWaypointScript: {fileID: 0}
+  animator: {fileID: 0}

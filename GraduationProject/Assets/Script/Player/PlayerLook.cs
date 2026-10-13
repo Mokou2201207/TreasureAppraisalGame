@@ -83,7 +83,7 @@ public class PlayerLook : MonoBehaviour
             if (customerLayer != -1 && hit.collider.gameObject.layer == customerLayer)
             {
                 MoveWaypoint hitCustomer = hit.collider.GetComponentInParent<MoveWaypoint>();
-                if (hitCustomer != null && hitCustomer.isStopped && hitCustomer.queuePositionNumber == 0)
+                if (hitCustomer != null && !hitCustomer.isMoving && hitCustomer.queuePositionNumber == 0)
                 {
                     if (crosshairText != null)
                     {
