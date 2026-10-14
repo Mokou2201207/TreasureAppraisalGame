@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// 鑑定システムおよび購入・お客さん返却処理を管理するマネージャー
+/// 鑑定システムおよび購入・お客さん返却処理を管理するマネージャー※AI担当
 /// </summary>
 public class InspectionManager : MonoBehaviour
 {

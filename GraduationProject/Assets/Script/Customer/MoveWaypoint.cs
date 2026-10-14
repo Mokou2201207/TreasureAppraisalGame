@@ -31,6 +31,9 @@ public class MoveWaypoint : MonoBehaviour
     // 停止中かどうか（最終目的地に到着して完了した状態）
     public bool isStopped = false;
 
+    // 列で前のお客さんの後ろに並んで待機中かどうか（ONの間はアニメーションがIdle固定）
+    public bool isWaitingInQueue = false;
+
     private void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
@@ -80,6 +83,9 @@ public class MoveWaypoint : MonoBehaviour
         // 最終目的地で停止中なら何もしない
         if (isStopped) return;
 
+        // 列で待機中なら何もしない
+        if (isWaitingInQueue) return;
+
         // 前方に他の客がいる場合は一時停止し、いなくなったら再開する（退場中のお客さんは除く）
         if (queuePositionNumber >= 0 && CheckCustomerAhead())
         {
@@ -89,6 +95,7 @@ public class MoveWaypoint : MonoBehaviour
                 agent.velocity = Vector3.zero;
             }
             isMoving = false;
+            isWaitingInQueue = true;
             return;
         }
         else
@@ -113,13 +120,13 @@ public class MoveWaypoint : MonoBehaviour
             }
 
             // 移動中かつ目的地に到着したら次のPointへ
-            if (isMoving && agent.remainingDistance <= agent.stoppingDistance)
+            float arrivalDistance = Mathf.Max(agent.stoppingDistance, 0.25f);
+            if (isMoving && agent.remainingDistance <= arrivalDistance)
             {
-                isMoving = false;
-
                 // 会計が終わり、最後のポイント（出口）に到着した場合は削除する
                 if (queuePositionNumber < 0 && (currentIndex - 1) >= stopIndex)
                 {
+                    isMoving = false;
                     Debug.Log("【退場完了】お客さんが最後まで到着したため削除します。");
                     Destroy(gameObject);
                     return;
@@ -150,9 +157,9 @@ public class MoveWaypoint : MonoBehaviour
 
         foreach (var hit in hitColliders)
         {
-            MoveWaypoint otherCustomer = hit.GetComponent<MoveWaypoint>();
+            MoveWaypoint otherCustomer = hit.GetComponentInParent<MoveWaypoint>();
             // 自分以外の「列に並んでいる最中の客」が前にいる場合のみ停止対象にする
-            if (hit.gameObject != gameObject && otherCustomer != null && otherCustomer.queuePositionNumber >= 0)
+            if (hit.gameObject != gameObject && otherCustomer != null && otherCustomer.gameObject != gameObject && otherCustomer.queuePositionNumber >= 0)
             {
                 return true;
             }
@@ -174,6 +181,7 @@ public class MoveWaypoint : MonoBehaviour
         queuePositionNumber = -1;
         isStopped = false;
         isMoving = false;
+        isWaitingInQueue = false;
 
         if (agent != null && agent.enabled)
         {
@@ -229,6 +237,7 @@ public class MoveWaypoint : MonoBehaviour
     {
         isStopped = false;
         isMoving = false;
+        isWaitingInQueue = false;
         if (agent != null && agent.enabled)
         {
             agent.isStopped = false;

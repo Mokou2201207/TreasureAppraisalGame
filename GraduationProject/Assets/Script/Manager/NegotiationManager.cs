@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// 人工知能を活用したお客さんとの交渉管理スクリプト
+/// 人工知能を活用したお客さんとの交渉管理スクリプト※AI担当
 /// </summary>
 public class NegotiationManager : MonoBehaviour
 {

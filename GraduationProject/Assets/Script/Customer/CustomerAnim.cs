@@ -41,6 +41,13 @@ public class CustomerAnim : MonoBehaviour
     {
         if (animator == null) return;
 
+        // 列で待機中フラグがONなら絶対にIdleから切り替えない
+        if (moveWaypointScript != null && moveWaypointScript.isWaitingInQueue)
+        {
+            animator.SetBool("isMoving", false);
+            return;
+        }
+
         bool moving = false;
         if (moveWaypointScript != null)
         {
