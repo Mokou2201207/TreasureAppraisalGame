@@ -242,12 +242,6 @@ public class MoveWaypoint : MonoBehaviour
         {
             agent.isStopped = false;
         }
-
-        // まだ目標停止ポイントに届いていない場合は次のポイントへ移動
-        if ((currentIndex - 1) <= stopIndex)
-        {
-            MoveToNextPoint();
-        }
     }
 
     /// <summary>
@@ -339,18 +333,6 @@ public class MoveWaypoint : MonoBehaviour
     public void SetQueuePosition(int queueNumber)
     {
         queuePositionNumber = queueNumber;
-        if (manager == null)
-        {
-            manager = FindClosestManager();
-        }
-
-        if (manager != null && manager.m_Waypoints != null && manager.m_Waypoints.Length > 0)
-        {
-            // 最後のポイントを基準にする
-            int baseStopIndex = manager.m_Waypoints.Length - 1;
-            // 順番に応じて少し手前で止まるように
-            stopIndex = Mathf.Max(0, baseStopIndex - queueNumber);
-        }
     }
 
     // デバッグ表示：前方の検知範囲をシーンビューに視覚表示

@@ -55,7 +55,12 @@ public class Respawn : MonoBehaviour
             MoveWaypoint moveScript = spawnedCustomer.GetComponent<MoveWaypoint>();
             if (moveScript != null)
             {
-               // moveScript.SetQueuePosition(activeCustomers.Length);
+                int queueCount = 0;
+                foreach (var c in activeCustomers)
+                {
+                    if (c.queuePositionNumber >= 0) queueCount++;
+                }
+                moveScript.SetQueuePosition(queueCount);
             }
         }
 

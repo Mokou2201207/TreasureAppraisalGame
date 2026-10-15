@@ -314,6 +314,45 @@ public class InspectionManager : MonoBehaviour
 
         // プレイヤーの移動と視点操作を再開
         SetPlayerControlsActive(true);
+
+        // 取引が終わったらマウスカーソルを消して画面中央に固定する
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+    }
+
+    /// <summary>
+    /// 交渉決裂時にお宝を買い取らずお客さんを帰す処理
+    /// </summary>
+    public void FinishCustomerWithoutBuying()
+    {
+        if (isInspecting)
+        {
+            EndInspection();
+        }
+
+        // お客さんがお宝を持ち帰るのでカウンターから消す
+        if (DropItemManager.Instance != null)
+        {
+            DropItemManager.Instance.ClearDroppedItem();
+        }
+
+        MoveWaypoint currentCustomer = FindCurrentCustomer();
+        if (currentCustomer != null)
+        {
+            Debug.Log("[InspectionManager] 交渉決裂。お客さんはお宝を持って帰りました。");
+            currentCustomer.FinishCheckout();
+        }
+
+        if (NegotiationManager.Instance != null)
+        {
+            NegotiationManager.Instance.HideAppraisalAcceptancePanel();
+        }
+
+        ReturnCameraToOriginalPosition();
+        SetPlayerControlsActive(true);
+
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
     }
 
     /// <summary>
@@ -322,21 +361,38 @@ public class InspectionManager : MonoBehaviour
     private MoveWaypoint FindCurrentCustomer()
     {
         MoveWaypoint[] customers = FindObjectsOfType<MoveWaypoint>();
+
+        // 並び順の番号が全員同じでも先頭を選べるよう、カウンターに着いて止まっている客の中で一番近い客を先頭とみなす
+        MoveWaypoint front = FindClosestCustomer(customers, true);
+        if (front == null) front = FindClosestCustomer(customers, false);
+        return front;
+    }
+
+    /// <summary>
+    /// 列に並んでいる客の中から鑑定台に一番近い客を探す
+    /// </summary>
+    private MoveWaypoint FindClosestCustomer(MoveWaypoint[] customers, bool onlyArrived)
+    {
+        Vector3 basePos;
+        if (inspectionTablePos != null) basePos = inspectionTablePos.position;
+        else if (mainCamera != null) basePos = savedCameraPos;
+        else basePos = Vector3.zero;
+
+        MoveWaypoint closest = null;
+        float minDist = Mathf.Infinity;
         foreach (var c in customers)
         {
-            if (c.queuePositionNumber == 0 && !c.isMoving)
+            if (c == null || c.queuePositionNumber < 0) continue;
+            if (onlyArrived && !c.isStopped) continue;
+
+            float dist = Vector3.Distance(c.transform.position, basePos);
+            if (dist < minDist)
             {
-                return c;
+                minDist = dist;
+                closest = c;
             }
         }
-        foreach (var c in customers)
-        {
-            if (c.queuePositionNumber == 0)
-            {
-                return c;
-            }
-        }
-        return null;
+        return closest;
     }
 
     /// <summary>

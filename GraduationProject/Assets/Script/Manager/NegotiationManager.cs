@@ -22,6 +22,10 @@ public class NegotiationManager : MonoBehaviour
     [SerializeField] private Button increasePriceButton;
     [Tooltip("交渉値段を1000$下げるボタン")]
     [SerializeField] private Button decreasePriceButton;
+    [Tooltip("提示額で取引してお客さんを帰すボタン")]
+    [SerializeField] private Button sendButton;
+    [Tooltip("交渉結果を表示するテキスト")]
+    [SerializeField] private Text resultText;
 
     [Header("失敗確率計算設定")]
     [Tooltip("基本失敗確率（パーセント）")]
@@ -33,6 +37,11 @@ public class NegotiationManager : MonoBehaviour
     private float currentNegotiationPrice = 0f;
     // 基準査定額
     private float baseAppraisalPrice = 0f;
+    // 交渉結果の判定中かどうか
+    private bool isResolving = false;
+
+    // 交渉結果が出たときに成否と提示額を通知する
+    public event Action<bool, float> OnNegotiationResolved;
 
     private void Awake()
     {
@@ -73,15 +82,11 @@ public class NegotiationManager : MonoBehaviour
             decreasePriceButton.onClick.RemoveListener(DecreaseNegotiationPrice);
             decreasePriceButton.onClick.AddListener(DecreaseNegotiationPrice);
         }
-    }
 
-    private void Update()
-    {
-        // 交渉パネル表示中にEnterキーで送信
-        bool isPanelActive = appraisalAcceptancePanel != null && appraisalAcceptancePanel.activeSelf;
-        if (isPanelActive && (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter)))
+        if (sendButton != null)
         {
-            OnSendButtonClicked();
+            sendButton.onClick.RemoveListener(OnSendButtonClicked);
+            sendButton.onClick.AddListener(OnSendButtonClicked);
         }
     }
 
@@ -106,6 +111,8 @@ public class NegotiationManager : MonoBehaviour
             if (negotiationPriceText == null) negotiationPriceText = FindComponentInChildren<Text>(appraisalAcceptancePanel, "NegotiationPriceText", "PriceText", "NegotiationPrice");
             if (increasePriceButton == null) increasePriceButton = FindComponentInChildren<Button>(appraisalAcceptancePanel, "IncreasePriceButton", "PriceUpButton", "UpButton");
             if (decreasePriceButton == null) decreasePriceButton = FindComponentInChildren<Button>(appraisalAcceptancePanel, "DecreasePriceButton", "PriceDownButton", "DownButton");
+            if (sendButton == null) sendButton = FindComponentInChildren<Button>(appraisalAcceptancePanel, "SendButton", "DecideButton", "OkButton");
+            if (resultText == null) resultText = FindComponentInChildren<Text>(appraisalAcceptancePanel, "ResultText", "NegotiationResultText");
         }
     }
 
@@ -149,6 +156,9 @@ public class NegotiationManager : MonoBehaviour
             currentNegotiationPrice = InspectionManager.Instance.CurrentCalculatedPrice;
             baseAppraisalPrice = currentNegotiationPrice;
         }
+
+        isResolving = false;
+        if (resultText != null) resultText.text = string.Empty;
 
         // UI表示を更新
         UpdateNegotiationUI();
@@ -194,6 +204,7 @@ public class NegotiationManager : MonoBehaviour
     /// </summary>
     public void IncreaseNegotiationPrice()
     {
+        if (isResolving) return;
         currentNegotiationPrice += 1000f;
         UpdateNegotiationUI();
     }
@@ -203,6 +214,7 @@ public class NegotiationManager : MonoBehaviour
     /// </summary>
     public void DecreaseNegotiationPrice()
     {
+        if (isResolving) return;
         currentNegotiationPrice = Mathf.Max(0f, currentNegotiationPrice - 1000f);
         UpdateNegotiationUI();
     }
@@ -223,10 +235,40 @@ public class NegotiationManager : MonoBehaviour
     /// </summary>
     public void OnSendButtonClicked()
     {
+        if (isResolving) return;
+        isResolving = true;
+
         // 提示額で取引を確定し、お客さんを帰す
+        ResolveNegotiation();
+    }
+
+    /// <summary>
+    /// 失敗確率で交渉の成否を判定し、すぐにお客さんを帰す処理
+    /// </summary>
+    private void ResolveNegotiation()
+    {
+        float failureRate = CalculateFailureRate();
+        bool isSuccess = UnityEngine.Random.Range(0f, 100f) >= failureRate;
+
+        if (resultText != null)
+        {
+            resultText.text = isSuccess ? "交渉成立！" : "交渉決裂…";
+        }
+
+        OnNegotiationResolved?.Invoke(isSuccess, currentNegotiationPrice);
+
         if (InspectionManager.Instance != null)
         {
-            InspectionManager.Instance.BuyItemAndFinishCustomer();
+            if (isSuccess)
+            {
+                InspectionManager.Instance.BuyItemAndFinishCustomer();
+            }
+            else
+            {
+                InspectionManager.Instance.FinishCustomerWithoutBuying();
+            }
         }
+
+        isResolving = false;
     }
 }
