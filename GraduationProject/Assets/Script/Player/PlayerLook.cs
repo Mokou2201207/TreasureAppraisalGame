@@ -108,6 +108,24 @@ public class PlayerLook : MonoBehaviour
                 }
             }
 
+            //車に触れたらオークションに売りに出す場所に移動
+            int CarLayer = LayerMask.NameToLayer("Car");
+            if (hit.collider.gameObject.layer == CarLayer)
+            {
+                if (crosshairText != null)
+                {
+                    crosshairText.text = "車でオークションへ売りにだす。";
+                }
+
+                SceneTeleporter hitCCar = hit.collider.GetComponentInParent<SceneTeleporter>();
+                if (Input.GetMouseButtonDown(0))
+                {
+                    hitCCar.OpenLodingPanel();
+                }
+            }
+
+
+
             // お宝判定の検索
             ItemData treasure = hit.collider.GetComponent<ItemData>();
             if (treasure == null) treasure = hit.collider.GetComponentInParent<ItemData>();
@@ -145,3 +163,5 @@ public class PlayerLook : MonoBehaviour
         }
     }
 }
+
+
