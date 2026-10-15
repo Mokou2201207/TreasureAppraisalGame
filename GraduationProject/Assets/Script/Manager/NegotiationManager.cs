@@ -18,18 +18,10 @@ public class NegotiationManager : MonoBehaviour
     [SerializeField] private Text failureRateText;
     [Tooltip("現在の交渉提示額を表示するテキスト")]
     [SerializeField] private Text negotiationPriceText;
-    [Tooltip("残りの交渉可能回数を表示するテキスト")]
-    [SerializeField] private Text remainingNegotiationCountText;
     [Tooltip("交渉値段を1000$上げるボタン")]
     [SerializeField] private Button increasePriceButton;
     [Tooltip("交渉値段を1000$下げるボタン")]
     [SerializeField] private Button decreasePriceButton;
-
-    [Header("交渉回数設定")]
-    [Tooltip("交渉回数の下限")]
-    [SerializeField] private int minNegotiationCount = 3;
-    [Tooltip("交渉回数の上限")]
-    [SerializeField] private int maxNegotiationCount = 5;
 
     [Header("失敗確率計算設定")]
     [Tooltip("基本失敗確率（パーセント）")]
@@ -37,18 +29,10 @@ public class NegotiationManager : MonoBehaviour
     [Tooltip("基準額から1000$安くするごとの失敗確率上昇（パーセント）")]
     [SerializeField] private float priceFailureRatePer1000 = 2f;
 
-    [Header("自動帰宅設定")]
-    [Tooltip("最後の会話終了後、お客さんが自動で帰るまでの待機秒数")]
-    [SerializeField] private float autoFinishDelay = 3.5f;
-
     // 現在の交渉提示金額
     private float currentNegotiationPrice = 0f;
     // 基準査定額
     private float baseAppraisalPrice = 0f;
-    // 残りの交渉回数
-    private int remainingNegotiationCount = 0;
-    // 自動退場用コルーチン
-    private Coroutine autoFinishCoroutine;
 
     private void Awake()
     {
@@ -99,12 +83,6 @@ public class NegotiationManager : MonoBehaviour
         {
             OnSendButtonClicked();
         }
-
-        // 鑑定中に右クリックされたら交渉パネルを表示
-        if (InspectionManager.Instance != null && InspectionManager.Instance.IsInspecting && Input.GetMouseButtonDown(1))
-        {
-            ShowAppraisalAcceptancePanel();
-        }
     }
 
     /// <summary>
@@ -126,7 +104,6 @@ public class NegotiationManager : MonoBehaviour
             // 各種UIの自動検索
             if (failureRateText == null) failureRateText = FindComponentInChildren<Text>(appraisalAcceptancePanel, "FailureRateText", "FailRateText", "FailureRate");
             if (negotiationPriceText == null) negotiationPriceText = FindComponentInChildren<Text>(appraisalAcceptancePanel, "NegotiationPriceText", "PriceText", "NegotiationPrice");
-            if (remainingNegotiationCountText == null) remainingNegotiationCountText = FindComponentInChildren<Text>(appraisalAcceptancePanel, "RemainingNegotiationCountText", "RemainingCountText", "NegotiationCountText");
             if (increasePriceButton == null) increasePriceButton = FindComponentInChildren<Button>(appraisalAcceptancePanel, "IncreasePriceButton", "PriceUpButton", "UpButton");
             if (decreasePriceButton == null) decreasePriceButton = FindComponentInChildren<Button>(appraisalAcceptancePanel, "DecreasePriceButton", "PriceDownButton", "DownButton");
         }
@@ -166,21 +143,12 @@ public class NegotiationManager : MonoBehaviour
             appraisalAcceptancePanel.SetActive(true);
         }
 
-        if (autoFinishCoroutine != null)
-        {
-            StopCoroutine(autoFinishCoroutine);
-            autoFinishCoroutine = null;
-        }
-
         // 初期価格と基準額をInspectionManagerから反映
         if (InspectionManager.Instance != null)
         {
             currentNegotiationPrice = InspectionManager.Instance.CurrentCalculatedPrice;
             baseAppraisalPrice = currentNegotiationPrice;
         }
-
-        // 交渉回数を乱数で初期化
-        remainingNegotiationCount = UnityEngine.Random.Range(minNegotiationCount, maxNegotiationCount + 1);
 
         // UI表示を更新
         UpdateNegotiationUI();
@@ -219,11 +187,6 @@ public class NegotiationManager : MonoBehaviour
         {
             failureRateText.text = $"{Mathf.RoundToInt(failureRate)}%";
         }
-
-        if (remainingNegotiationCountText != null)
-        {
-            remainingNegotiationCountText.text = $"{remainingNegotiationCount}回";
-        }
     }
 
     /// <summary>
@@ -249,12 +212,6 @@ public class NegotiationManager : MonoBehaviour
     /// </summary>
     public void HideAppraisalAcceptancePanel()
     {
-        if (autoFinishCoroutine != null)
-        {
-            StopCoroutine(autoFinishCoroutine);
-            autoFinishCoroutine = null;
-        }
-
         if (appraisalAcceptancePanel != null)
         {
             appraisalAcceptancePanel.SetActive(false);
@@ -266,38 +223,10 @@ public class NegotiationManager : MonoBehaviour
     /// </summary>
     public void OnSendButtonClicked()
     {
-        if (autoFinishCoroutine != null || remainingNegotiationCount <= 0) return;
-
-        float failureRate = CalculateFailureRate();
-        float roll = UnityEngine.Random.Range(0f, 100f);
-
-        if (roll >= failureRate)
-        {
-            autoFinishCoroutine = StartCoroutine(AutoFinishCustomerAfterDelay());
-        }
-        else
-        {
-            remainingNegotiationCount = Mathf.Max(0, remainingNegotiationCount - 1);
-            UpdateNegotiationUI();
-
-            if (remainingNegotiationCount <= 0)
-            {
-                autoFinishCoroutine = StartCoroutine(AutoFinishCustomerAfterDelay());
-            }
-        }
-    }
-
-    /// <summary>
-    /// 最後の会話後に自動的にお客さんが帰宅する処理
-    /// </summary>
-    private IEnumerator AutoFinishCustomerAfterDelay()
-    {
-        yield return new WaitForSeconds(autoFinishDelay);
-
+        // 提示額で取引を確定し、お客さんを帰す
         if (InspectionManager.Instance != null)
         {
             InspectionManager.Instance.BuyItemAndFinishCustomer();
         }
-        autoFinishCoroutine = null;
     }
 }
