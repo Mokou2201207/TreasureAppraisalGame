@@ -14,6 +14,27 @@ public class RadioMusic : MonoBehaviour
     [Header("BGMを鳴らすAudioSource（空なら自動で取得）"), SerializeField]
     private AudioSource audioSource;
 
+    [Header("曲を変えるときのノイズ音"), SerializeField]
+    private AudioClip switchNoise;
+
+    [Header("ノイズ音の大きさ"), SerializeField, Range(0f, 1f)]
+    private float noiseVolume = 0.6f;
+
+    [Header("ラジオを切るときの効果音"), SerializeField]
+    private AudioClip powerOffSound;
+
+    [Header("効果音の大きさ"), SerializeField, Range(0f, 1f)]
+    private float powerOffVolume = 0.7f;
+
+    [Header("ラジオを切る・つけるキー"), SerializeField]
+    private KeyCode powerKey = KeyCode.E;
+
+    [Header("ラジオがついているときに出す2行目の文字"), SerializeField]
+    private string powerOffMessage = "ラジオを切る(Eキー)";
+
+    [Header("ラジオが切れているときに出す文字"), SerializeField]
+    private string powerOnMessage = "ラジオをつける(Eキー)";
+
     [Header("ラジオを操作できる距離"), SerializeField]
     private float interactDistance = 4.0f;
 
@@ -28,6 +49,9 @@ public class RadioMusic : MonoBehaviour
     // カーソルがラジオに合っているかどうか
     private bool isLookingAtRadio = false;
     private Camera mainCamera;
+    private Coroutine switchCoroutine;
+    // ラジオがついているかどうか
+    private bool isPowerOn = true;
 
     // Start is called before the first frame update
     void Start()
@@ -66,7 +90,13 @@ public class RadioMusic : MonoBehaviour
     {
         isLookingAtRadio = CheckLookingAtRadio();
 
-        if (isLookingAtRadio && Input.GetMouseButtonDown(0))
+        if (!isLookingAtRadio) return;
+
+        if (Input.GetKeyDown(powerKey))
+        {
+            TogglePower();
+        }
+        else if (isPowerOn && Input.GetMouseButtonDown(0))
         {
             PlayNext();
         }
@@ -77,7 +107,7 @@ public class RadioMusic : MonoBehaviour
         // PlayerLookが毎フレーム文字を消すので、そのあとに表示する
         if (isLookingAtRadio && crosshairText != null)
         {
-            crosshairText.text = crosshairMessage;
+            crosshairText.text = isPowerOn ? crosshairMessage + "\n" + powerOffMessage : powerOnMessage;
         }
     }
 
@@ -109,7 +139,55 @@ public class RadioMusic : MonoBehaviour
         if (audioSource == null || bgmClips == null || bgmClips.Length == 0) return;
 
         currentIndex = (currentIndex + 1) % bgmClips.Length;
+
+        // 連続でクリックされたときは前の切り替えを止める
+        if (switchCoroutine != null) StopCoroutine(switchCoroutine);
+        switchCoroutine = StartCoroutine(SwitchWithNoise());
+    }
+
+    /// <summary>
+    /// ラジオを切る・つける
+    /// </summary>
+    public void TogglePower()
+    {
+        if (audioSource == null) return;
+
+        if (switchCoroutine != null)
+        {
+            StopCoroutine(switchCoroutine);
+            switchCoroutine = null;
+        }
+
+        if (isPowerOn)
+        {
+            isPowerOn = false;
+            audioSource.Stop();
+            if (powerOffSound != null) audioSource.PlayOneShot(powerOffSound, powerOffVolume);
+        }
+        else
+        {
+            isPowerOn = true;
+            if (bgmClips == null || bgmClips.Length == 0) return;
+            // つけたときは切る前の曲をノイズのあとに流す
+            switchCoroutine = StartCoroutine(SwitchWithNoise());
+        }
+    }
+
+    /// <summary>
+    /// ノイズ音を鳴らしてから次の曲を流す
+    /// </summary>
+    private IEnumerator SwitchWithNoise()
+    {
+        audioSource.Stop();
+
+        if (switchNoise != null)
+        {
+            audioSource.PlayOneShot(switchNoise, noiseVolume);
+            yield return new WaitForSeconds(switchNoise.length * 0.8f);
+        }
+
         PlayCurrent();
+        switchCoroutine = null;
     }
 
     /// <summary>
