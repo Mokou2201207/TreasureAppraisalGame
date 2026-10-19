@@ -26,16 +26,6 @@ public class SceneTeleporter : MonoBehaviour
     /// </summary>
     private void Start()
     {
-        //LoadingPanelEventのスクリプトがアタッチされているか確認※ない場合自動でアタッチする処理を入れる
-        GameObject obj = GameObject.Find("LoadingPanel");
-        if (loadingPanelEvent!=null)
-        {
-            loadingPanelEvent=obj.GetComponent<LoadingPanelEvent>();
-        }
-        else
-        {
-            Debug.LogError("LoadingPanelの名前が違うか、スクリプトがないかです");
-        }
 
         //最初にImageたちを非表示にする
         if (loadingPanel != null)
