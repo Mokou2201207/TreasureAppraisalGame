@@ -33,6 +33,15 @@ public class NegotiationManager : MonoBehaviour
     [Tooltip("基準額から1000$安くするごとの失敗確率上昇（パーセント）")]
     [SerializeField] private float priceFailureRatePer1000 = 2f;
 
+    [Header("鑑定料設定")]
+    [Tooltip("1回の鑑定でかかる鑑定料（交渉が決裂しても支払う）")]
+    [SerializeField] private int appraisalFee = 2000;
+    [Tooltip("鑑定料を表示するテキスト")]
+    [SerializeField] private Text appraisalFeeText;
+
+    // 今の鑑定料
+    public int AppraisalFee => appraisalFee;
+
     // 現在の交渉提示金額
     private float currentNegotiationPrice = 0f;
     // 基準査定額
@@ -112,6 +121,7 @@ public class NegotiationManager : MonoBehaviour
             if (increasePriceButton == null) increasePriceButton = FindComponentInChildren<Button>(appraisalAcceptancePanel, "IncreasePriceButton", "PriceUpButton", "UpButton");
             if (decreasePriceButton == null) decreasePriceButton = FindComponentInChildren<Button>(appraisalAcceptancePanel, "DecreasePriceButton", "PriceDownButton", "DownButton");
             if (sendButton == null) sendButton = FindComponentInChildren<Button>(appraisalAcceptancePanel, "SendButton", "DecideButton", "OkButton");
+            if (appraisalFeeText == null) appraisalFeeText = FindComponentInChildren<Text>(appraisalAcceptancePanel, "AppraisalFeeText", "FeeText");
             if (resultText == null) resultText = FindComponentInChildren<Text>(appraisalAcceptancePanel, "ResultText", "NegotiationResultText");
         }
     }
@@ -192,11 +202,25 @@ public class NegotiationManager : MonoBehaviour
             negotiationPriceText.text = $"{currentNegotiationPrice:N0}$";
         }
 
+        if (appraisalFeeText != null)
+        {
+            appraisalFeeText.text = $"鑑定料：{appraisalFee:N0}$";
+        }
+
         float failureRate = CalculateFailureRate();
         if (failureRateText != null)
         {
             failureRateText.text = $"{Mathf.RoundToInt(failureRate)}%";
         }
+    }
+
+    /// <summary>
+    /// 鑑定料を変える処理（お客さんのレベルに合わせて外から設定する）
+    /// </summary>
+    public void SetAppraisalFee(int fee)
+    {
+        appraisalFee = Mathf.Max(0, fee);
+        UpdateNegotiationUI();
     }
 
     /// <summary>
@@ -247,8 +271,25 @@ public class NegotiationManager : MonoBehaviour
     /// </summary>
     private void ResolveNegotiation()
     {
+        int price = Mathf.RoundToInt(currentNegotiationPrice);
+        int total = appraisalFee + price;
+
+        // 鑑定料と提示額を合わせた金額が所持金に足りないときは交渉せず、値段を下げてもらう
+        if (MonayManager.Instance != null && MonayManager.Instance.CurrentMonay < total)
+        {
+            if (resultText != null) resultText.text = "お金が足りません（鑑定料込み）";
+            isResolving = false;
+            return;
+        }
+
         float failureRate = CalculateFailureRate();
         bool isSuccess = UnityEngine.Random.Range(0f, 100f) >= failureRate;
+
+        // 鑑定料は結果にかかわらず支払い、成立したときだけ提示額も支払う
+        if (MonayManager.Instance != null)
+        {
+            MonayManager.Instance.SpendMonay(isSuccess ? total : appraisalFee);
+        }
 
         if (resultText != null)
         {

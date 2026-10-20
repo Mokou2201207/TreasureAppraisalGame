@@ -12,7 +12,7 @@ public class DayManager : MonoBehaviour
     [SerializeField] private Text currentDay;
 
     //残り日数
-    private int dayCount = 3;
+    public int dayCount = 3;
 
     // 今何個目のミッションか
     public int currentQuotaIndex = 0;
@@ -43,20 +43,19 @@ public class DayManager : MonoBehaviour
         currentDay.text = $"{dayCount}日";
     }
 
+    /// <summary>
+    /// 更新処理
+    /// </summary>
     private void Update()
     {
+        if (DayManager.Instance == null) return;
+
         /// <summary>
         /// テスト用
         /// <summary>
         if (Input.GetKeyDown(KeyCode.L))
         {
             NextDay();
-        }
-
-        //残り日数が０になったら金額が足りているかの関数へ
-        if (dayCount == 0)
-        {
-            MonayManager.Instance.RepaymentMonay();
         }
     }
 
@@ -65,8 +64,26 @@ public class DayManager : MonoBehaviour
     /// </summary>
     private void NextDay()
     {
+        //残り日数が０以下になったら処理をしない
+        if (dayCount <= 0) return;
+
         dayCount--;
-        currentDay.text = $"{dayCount}日";
+        if(currentDay!=null)currentDay.text = $"{dayCount}日";
+
+        //残り日数が０になったら金額が足りているかの関数へ
+        if (dayCount==0)
+        {
+            MonayManager.Instance.RepaymentMonay();
+        }
+    }
+
+    /// <summary>
+    /// リセット用の関数
+    /// </summary>
+    public void ResetDay()
+    {
+        dayCount = 3;
+        if (currentDay != null) currentDay.text = $"{dayCount}日";
     }
 
 }

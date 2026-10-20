@@ -26,6 +26,9 @@ public class MoveWaypoint : MonoBehaviour
     [Header("自分が何番目のお客さんか"), SerializeField]
     public int queuePositionNumber = 0;
 
+    [Header("動き出すのに必要な前との距離の倍率"),SerializeField]
+    private float resumeDistanceScale = 1.6f;
+
     /// 経路が確定して移動中かどうか
     public bool isMoving = false;
     // 停止中かどうか（最終目的地に到着して完了した状態）
@@ -84,7 +87,11 @@ public class MoveWaypoint : MonoBehaviour
         if (isStopped) return;
 
         // 列で待機中なら何もしない
-        if (isWaitingInQueue) return;
+        if (isWaitingInQueue)
+        {
+            if (CheckCustomerAhead(resumeDistanceScale)) return;
+            ResumeMove();
+        }
 
         // 前方に他の客がいる場合は一時停止し、いなくなったら再開する（退場中のお客さんは除く）
         if (queuePositionNumber >= 0 && CheckCustomerAhead())
@@ -149,11 +156,12 @@ public class MoveWaypoint : MonoBehaviour
     /// <summary>
     /// 前方に他の客が居るかチェック（前方範囲の判定）
     /// </summary>
-    private bool CheckCustomerAhead()
+    private bool CheckCustomerAhead(float rangeScale = 1f)
     {
+        float distance = stopDistanceToFrontCustomer * rangeScale;
         // 前方へ少し進んだ位置を中心に円で検知して確実に前のお客さんを捕らえる
-        Vector3 checkCenter = transform.position + Vector3.up * 0.5f + transform.forward * (stopDistanceToFrontCustomer * 0.5f);
-        Collider[] hitColliders = Physics.OverlapSphere(checkCenter, stopDistanceToFrontCustomer * 0.6f);
+        Vector3 checkCenter = transform.position + Vector3.up * 0.5f + transform.forward * (distance * 0.5f);
+        Collider[] hitColliders = Physics.OverlapSphere(checkCenter, distance * 0.6f);
 
         foreach (var hit in hitColliders)
         {

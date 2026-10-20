@@ -1823,6 +1823,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   currentDay: {fileID: 1713332990}
+  dayCount: 3
   currentQuotaIndex: 0
 --- !u!1 &561215206
 GameObject:
@@ -1995,7 +1996,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &649663195
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3061,8 +3062,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   monayText: {fileID: 2113607162}
-  currentMonay: 5000
-  targetMoney: 0
+  currentMonay: 30000
+  targetMoneys: 50c30000a0860100e0930400
 --- !u!1 &1015554924
 GameObject:
   m_ObjectHideFlags: 0
@@ -3323,6 +3324,8 @@ MonoBehaviour:
   resultText: {fileID: 0}
   baseFailureRate: 40
   priceFailureRatePer1000: 10
+  appraisalFee: 2000
+  appraisalFeeText: {fileID: 0}
 --- !u!114 &1245152265 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 2192076376962411320, guid: 799aad07603a4ce4a973afa4f068e98b,

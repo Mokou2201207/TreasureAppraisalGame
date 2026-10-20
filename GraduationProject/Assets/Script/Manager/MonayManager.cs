@@ -17,7 +17,13 @@ public class MonayManager : MonoBehaviour
     [SerializeField]private int currentMonay = 1000;
 
     // 今のミッションの目標金額
-    [SerializeField] private int targetMoney = 0;
+    [SerializeField] private int[] targetMoneys = {3000,6000,10000};
+
+    //今のミッションの目標金額
+    private int targetMoney => targetMoneys[DayManager.Instance.currentQuotaIndex];
+
+    //今持ってるお金を取得するプロパティ
+    public int CurrentMonay => currentMonay;
 
     private void Awake()
     {
@@ -41,20 +47,14 @@ public class MonayManager : MonoBehaviour
     private void Update()
     {
         if (monayText == null) return;
+        if (DayManager.Instance == null) return;
 
-        switch (DayManager.Instance.currentQuotaIndex) 
-        {
-            case 0:
-                targetMoney = 3000;
-                monayText.text = $"{currentMonay}$/{targetMoney}$;";
-                break;
+        int index = DayManager.Instance.currentQuotaIndex;
 
-            case 1:
-                targetMoney = 6000;
-                monayText.text = $"{currentMonay}$/{targetMoney}$;";
-                break;
+        // 全部クリアしたあとは、配列の外を読まないように止める
+        if (index >= targetMoneys.Length) return;
 
-        }
+        monayText.text = $"{currentMonay}$/{targetMoneys[index]}$";
     }
 
     /// <summary>
@@ -66,14 +66,32 @@ public class MonayManager : MonoBehaviour
         {
             // 返済して次のノルマへ
             Debug.Log("返済成功");
-            currentMonay=currentMonay-targetMoney;
+            currentMonay-=targetMoney;
             DayManager.Instance.currentQuotaIndex++;
+
+            //すべてのミッションをクリアした場合はゲームクリア
+            if (DayManager.Instance.currentQuotaIndex>=targetMoneys.Length)
+            {
+                //ゲームクリアの関数を入れる予定
+                return;
+            }
+
+            //残り日数をリセット
+            DayManager.Instance.ResetDay();
         }
         else
         {
             // 失敗：ゲームオーバー
             Debug.Log("ゲームオーバー");
         }
+    }
+
+    /// <summary>
+    /// お金を払う処理
+    /// </summary>
+    public void SpendMonay(int amount)
+    {
+        currentMonay -= amount;
     }
 
 }
