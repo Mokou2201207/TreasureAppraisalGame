@@ -1,7 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+/// <summary>
+/// お宝の情報
+/// </summary>
 public class ItemData : MonoBehaviour
 {
     [Header("アイテムタイプ"), SerializeField]
@@ -49,27 +51,52 @@ public class ItemData : MonoBehaviour
     [Header("鑑定オリジナルミッション②"), SerializeField]
     public bool isAppraisalMission2 = false;
 
+    [Header("ダメージの見た目")]
+    public GameObject damagedVisual;
+    [Header("ミッション①の見た目")]
+    public GameObject mission1Visual;
+    [Header("ミッション②の見た目")]
+    public GameObject mission2Visual;
+
+    [Header("ダメージが出る確率")]
+    [Range(0f, 1f)] public float damagedChance = 0.4f;
+    [Header("ミッション①確率")]
+    [Range(0f, 1f)] public float mission1Chance = 0.3f;
+    [Header("ミッション②確率")]
+    [Range(0f, 1f)] public float mission2Chance = 0.4f;
+    [Header("ご情報を出す確率")]
+    [Range(0f, 1f)] public float wrongDescriptionChance = 0.5f;
+
+    // 一度ランダムに決めたら決め直さないための目印
+    [HideInInspector] public bool isRandomized = false;
+
     /// <summary>
     /// 開始処理からitemNameによってインスペクターがアタッチされる処理に移行
     /// </summary>
     private void Start()
     {
         OnValidate();
+        RandomizeState();
     }
 
+    /// <summary>
+    /// お宝のミッションや値段を決める処理
+    /// </summary>
     private void OnValidate()
     {
+        //同じ宝でセリフが選びなおされないようにされるための
+        if (!isRandomized)　ApplyRandomCustomerDescription();
         switch (itemName) 
         {
             case ItemCategory.古い壺:
                 itemDescription = "江戸時代後期のものと思われる、素朴な土肌の古い壺。\n表面に幾重ものスレや傷があり、使い込まれた歴史を感じさせる。";
                 appraisalMission1 = "雑に修復された「金継ぎ」や接着跡がないか見極める";
-                appraisalMission2 = "全体に付着したカビ・錆の広がり具合を確認する";
+                appraisalMission2 = "全体に付着した錆の広がり具合を確認する";
                 //最高金額
-                highestPrice = 10000f;
+                highestPrice = 5000f;
                 string priceText1 = highestPrice.ToString("N0") + "$";
                 //傷つきのマイナス値段
-                damagedPrice = -2000f;
+                damagedPrice = -1000f;
                 string priceText2 = highestPrice.ToString("N0") + "$";
                 //情報が違う場合のマイナス値段
                 customerDescriptionPrice = -500f;
@@ -141,5 +168,35 @@ public class ItemData : MonoBehaviour
             int index = Random.Range(0, incorrectTexts.Length);
             itemCustomerDescription = incorrectTexts[index];
         }
+    }
+
+    /// <summary>
+    /// お宝の状態をランダムに決める処理
+    /// </summary>
+    public void RandomizeState()
+    {
+        //すでにランダムに決めた場合は、再度決めないようにする
+        if (isRandomized) return;
+
+
+        isDamaged=Random.value < damagedChance;
+        isAppraisalMission1 = Random.value < mission1Chance;
+        isAppraisalMission2 = Random.value < mission2Chance;
+        isCustomerDescription = Random.value >= wrongDescriptionChance;
+
+        isRandomized = true;
+
+        ApplyVisuals();
+        ApplyRandomCustomerDescription();
+    }
+
+    /// <summary>
+    /// フラグに合わせて、傷やカビの見た目を出したり隠したりする
+    /// </summary>
+    private void ApplyVisuals()
+    {
+        if (damagedVisual != null) damagedVisual.SetActive(isDamaged);
+        if (mission1Visual != null) mission1Visual.SetActive(isAppraisalMission1);
+        if (mission2Visual != null) mission2Visual.SetActive(isAppraisalMission2);
     }
 }
