@@ -21,6 +21,8 @@ public class InventoryUI : MonoBehaviour
     [Header("カードのプレハブ")]
     [SerializeField] private ItemCard cardPrefab;
 
+    public bool IsOpen => inventoryPanel != null && inventoryPanel.activeSelf;
+
     private void Start()
     {
         // インベントリパネルを非表示にする

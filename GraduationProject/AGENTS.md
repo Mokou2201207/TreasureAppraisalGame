@@ -26,6 +26,9 @@
   - AIが書いたり修正したりしてよいのは、以下の「※AI担当」と書かれたスクリプトのみ。
     - `Assets/Script/Manager/NegotiationManager.cs`
     - `Assets/Script/Manager/InspectionManager.cs`
+    - `Assets/Script/Radio/RadioMusic.cs`
+    - `Assets/Script/Key/KeyHintRow.cs`
+    - `Assets/Script/Key/KeyHintUI.cs`
   - それ以外のスクリプトは、読んで説明・助言するだけにとどめ、勝手に書き換えない。
 - **質問のときは編集しない**:
   - ユーザーがプログラムについて質問しているだけのときは、回答や説明のみ行い、ファイルを勝手に書き換えない。

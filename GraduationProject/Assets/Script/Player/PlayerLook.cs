@@ -14,63 +14,17 @@ public class PlayerLook : MonoBehaviour
     [Header("Playerから出すRayの距離")]
     [SerializeField] private float rayDistance = 100.0f;
 
-    [Header("クロスヘア用のText")]
-    [SerializeField] private Text crosshairText;
-
-    private void Awake()
-    {
-        FindCrosshairText();
-    }
-
     void Start()
     {
-        FindCrosshairText();
-
         if (playerCamera == null && Camera.main != null)
         {
             playerCamera = Camera.main.transform;
         }
     }
 
-    /// <summary>
-    /// UIのCrosshairTextを自動検索
-    /// </summary>
-    private void FindCrosshairText()
-    {
-        if (crosshairText != null) return;
-
-        // CrosshairTextで検索
-        GameObject textObj = GameObject.Find("CrosshairText");
-        if (textObj != null)
-        {
-            crosshairText = textObj.GetComponent<Text>();
-        }
-
-        if (crosshairText == null)
-        {
-            Debug.LogWarning("[PlayerLook] クロスヘア用のTextが見つかりません。Canvas内にTextを作成し名前を 'CrosshairText' にするか、Inspectorでアタッチしてください。");
-        }
-    }
 
     void Update()
     {
-        // 鑑定中ならRayキャスト処理およびテキスト表示をスキップ
-        if (InspectionManager.Instance != null && InspectionManager.Instance.IsInspecting)
-        {
-            if (crosshairText != null) crosshairText.text = "";
-            return;
-        }
-
-        // 毎フレームのテキスト表示を初期化
-        if (crosshairText != null)
-        {
-            crosshairText.text = "";
-        }
-        else
-        {
-            FindCrosshairText();
-        }
-
         // カメラ位置から前方へRayを射出
         Ray ray = new Ray(playerCamera.position, playerCamera.forward);
         Debug.DrawRay(ray.origin, ray.direction * rayDistance, Color.red);
@@ -85,11 +39,6 @@ public class PlayerLook : MonoBehaviour
                 MoveWaypoint hitCustomer = hit.collider.GetComponentInParent<MoveWaypoint>();
                 if (hitCustomer != null && !hitCustomer.isMoving && hitCustomer.queuePositionNumber == 0)
                 {
-                    if (crosshairText != null)
-                    {
-                        crosshairText.text = "お宝を見せてもらう(左クリック)";
-                    }
-
                     if (Input.GetMouseButtonDown(0))
                     {
                         CustomerItem customerItemData = hit.collider.GetComponentInParent<CustomerItem>();
@@ -112,11 +61,6 @@ public class PlayerLook : MonoBehaviour
             int CarLayer = LayerMask.NameToLayer("Car");
             if (hit.collider.gameObject.layer == CarLayer)
             {
-                if (crosshairText != null)
-                {
-                    crosshairText.text = "車でオークションへ売りにだす。";
-                }
-
                 SceneTeleporter hitCCar = hit.collider.GetComponentInParent<SceneTeleporter>();
                 if (Input.GetMouseButtonDown(0))
                 {
@@ -141,11 +85,6 @@ public class PlayerLook : MonoBehaviour
             if (isTreasureItem)
             {
                 bool isCurrentlyInspecting = InspectionManager.Instance != null && InspectionManager.Instance.IsInspecting;
-
-                if (crosshairText != null && !isCurrentlyInspecting)
-                {
-                    crosshairText.text = "鑑定(左クリック)";
-                }
 
                 if (Input.GetMouseButtonDown(0) && !isCurrentlyInspecting)
                 {

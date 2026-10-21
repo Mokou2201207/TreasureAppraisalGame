@@ -42,6 +42,9 @@ public class NegotiationManager : MonoBehaviour
     // 今の鑑定料
     public int AppraisalFee => appraisalFee;
 
+    // 交渉パネルを開いているかどうか
+    public bool IsNegotiating => appraisalAcceptancePanel != null && appraisalAcceptancePanel.activeSelf;
+
     // 現在の交渉提示金額
     private float currentNegotiationPrice = 0f;
     // 基準査定額

@@ -290,8 +290,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerCamera: {fileID: 3411670622336734750}
-  rayDistance: 2
-  crosshairText: {fileID: 0}
+  rayDistance: 3
 --- !u!95 &4766880056681499672
 Animator:
   serializedVersion: 5

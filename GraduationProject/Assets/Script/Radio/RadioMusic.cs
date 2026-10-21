@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Reflection;
 
 /// <summary>
 /// ラジオを左クリックするたびにBGMを次の曲へ切り替える処理※AI担当
@@ -35,7 +36,7 @@ public class RadioMusic : MonoBehaviour
     [Header("ラジオが切れているときに出す文字"), SerializeField]
     private string powerOnMessage = "ラジオをつける(Eキー)";
 
-    [Header("ラジオを操作できる距離"), SerializeField]
+    [Header("ラジオを操作できる距離（PlayerLookが見つからないときに使う）"), SerializeField]
     private float interactDistance = 4.0f;
 
     [Header("ラジオを見たときに出す文字"), SerializeField]
@@ -52,6 +53,14 @@ public class RadioMusic : MonoBehaviour
     private Coroutine switchCoroutine;
     // ラジオがついているかどうか
     private bool isPowerOn = true;
+    public bool IsPowerOn => isPowerOn;
+    public float InteractDistance => GetInteractDistance();
+
+    private PlayerLook playerLook;
+
+    // PlayerLookのRayの長さ（rayDistance）を読み取るための情報
+    private static readonly FieldInfo rayDistanceField =
+        typeof(PlayerLook).GetField("rayDistance", BindingFlags.NonPublic | BindingFlags.Instance);
 
     // Start is called before the first frame update
     void Start()
@@ -124,11 +133,26 @@ public class RadioMusic : MonoBehaviour
         if (mainCamera == null) return false;
 
         Ray ray = new Ray(mainCamera.transform.position, mainCamera.transform.forward);
-        if (Physics.Raycast(ray, out RaycastHit hit, interactDistance))
+        if (Physics.Raycast(ray, out RaycastHit hit, GetInteractDistance()))
         {
             return hit.collider.GetComponentInParent<RadioMusic>() == this;
         }
         return false;
+    }
+
+    /// <summary>
+    /// PlayerLookと同じRayの長さを返す（お客さんや車と同じ距離で操作できるようにするため）
+    /// </summary>
+    private float GetInteractDistance()
+    {
+        // プレイヤーはあとからスポーンするので、見つかるまで探す
+        if (playerLook == null) playerLook = FindObjectOfType<PlayerLook>();
+
+        if (playerLook != null && rayDistanceField != null)
+        {
+            return (float)rayDistanceField.GetValue(playerLook);
+        }
+        return interactDistance;
     }
 
     /// <summary>
