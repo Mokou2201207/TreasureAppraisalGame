@@ -294,6 +294,12 @@ public class NegotiationManager : MonoBehaviour
             MonayManager.Instance.SpendMonay(isSuccess ? total : appraisalFee);
         }
 
+        // 買取成功・失敗のはんこを出す
+        if (DealResultUI.Instance != null)
+        {
+            DealResultUI.Instance.Play(isSuccess, isSuccess ? total : appraisalFee);
+        }
+
         // 鑑定結果を受け取り、成立したときだけ買取額を付けて持ち物に入れる
         PurchasedItem record = InspectionManager.Instance != null ? InspectionManager.Instance.TakeAppraisalRecord() : null;
         if (isSuccess && record != null && InventoryManager.Instance != null)
