@@ -14,15 +14,16 @@ public class InventoryManager : MonoBehaviour
 
     private void Awake()
     {
-        //シングルトンパターン
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject);
+            // 親（GameData）ごと、シーンを移動しても消えないようにする
+            DontDestroyOnLoad(transform.root.gameObject);
         }
         else
         {
-            Destroy(gameObject);
+            // すでにいる場合は、あとから来た GameData ごと消す
+            Destroy(transform.root.gameObject);
         }
     }
 

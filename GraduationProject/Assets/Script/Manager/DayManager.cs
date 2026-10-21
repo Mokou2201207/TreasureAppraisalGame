@@ -8,9 +8,6 @@ public class DayManager : MonoBehaviour
     //インスタンス化
     public static DayManager Instance { get; private set; }
 
-    [Header("現在の日のText")]
-    [SerializeField] private Text currentDay;
-
     //残り日数
     public int dayCount = 3;
 
@@ -19,28 +16,17 @@ public class DayManager : MonoBehaviour
 
     private void Awake()
     {
-        // まだ誰もいなければ、自分が担当になる
         if (Instance == null)
         {
             Instance = this;
-            // シーンを移動しても消えないようにする
-            DontDestroyOnLoad(gameObject);
+            // 親（GameData）ごと、シーンを移動しても消えないようにする
+            DontDestroyOnLoad(transform.root.gameObject);
         }
         else
         {
-            // すでにいる場合は、あとから来た自分を消す
-            Destroy(gameObject);
+            // すでにいる場合は、あとから来た GameData ごと消す
+            Destroy(transform.root.gameObject);
         }
-    }
-
-    /// <summary>
-    /// 開始処理
-    /// </summary>
-    private void Start()
-    {
-        //設定した日数に変更
-        if (currentDay == null) return;
-        currentDay.text = $"{dayCount}日";
     }
 
     /// <summary>
@@ -68,7 +54,6 @@ public class DayManager : MonoBehaviour
         if (dayCount <= 0) return;
 
         dayCount--;
-        if(currentDay!=null)currentDay.text = $"{dayCount}日";
 
         //残り日数が０になったら金額が足りているかの関数へ
         if (dayCount==0)
@@ -83,7 +68,6 @@ public class DayManager : MonoBehaviour
     public void ResetDay()
     {
         dayCount = 3;
-        if (currentDay != null) currentDay.text = $"{dayCount}日";
     }
 
 }

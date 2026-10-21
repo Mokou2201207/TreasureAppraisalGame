@@ -2941,6 +2941,7 @@ GameObject:
   - component: {fileID: 2979987563131968935}
   - component: {fileID: 2683214985252945881}
   - component: {fileID: 7312873300485922728}
+  - component: {fileID: 6501632643625971010}
   m_Layer: 5
   m_Name: Txt_Day
   m_TagString: Untagged
@@ -3009,6 +3010,19 @@ MonoBehaviour:
     m_VerticalOverflow: 0
     m_LineSpacing: 1
   m_Text: "1\u65E5"
+--- !u!114 &6501632643625971010
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2800278318715065912}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2a1a8847c7f7d554f95b846caf68f3b3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  text: {fileID: 7312873300485922728}
 --- !u!1 &2893967427228766695
 GameObject:
   m_ObjectHideFlags: 0
@@ -8083,6 +8097,7 @@ GameObject:
   - component: {fileID: 4683520077606183335}
   - component: {fileID: 8404113605679682502}
   - component: {fileID: 2302299292378930690}
+  - component: {fileID: 5700619375236552133}
   m_Layer: 5
   m_Name: Txt_Money
   m_TagString: Untagged
@@ -8151,6 +8166,19 @@ MonoBehaviour:
     m_VerticalOverflow: 0
     m_LineSpacing: 1
   m_Text: 0$/3000$
+--- !u!114 &5700619375236552133
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7526649297204922008}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b291f55db2b39ce468023f5a92a14cae, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  text: {fileID: 2302299292378930690}
 --- !u!1 &7643845569609604400
 GameObject:
   m_ObjectHideFlags: 0

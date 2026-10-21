@@ -10,9 +10,6 @@ public class MonayManager : MonoBehaviour
     //インスタンス化
     public static MonayManager Instance { get; private set; }
 
-    [Header("お金のText")]
-    [SerializeField] private Text monayText;
-
     //今持ってるお金
     [SerializeField]private int currentMonay = 1000;
 
@@ -27,34 +24,30 @@ public class MonayManager : MonoBehaviour
 
     private void Awake()
     {
-        // まだ誰もいなければ、自分が担当になる
         if (Instance == null)
         {
             Instance = this;
-            // シーンを移動しても消えないようにする
-            DontDestroyOnLoad(gameObject);
+            // 親（GameData）ごと、シーンを移動しても消えないようにする
+            DontDestroyOnLoad(transform.root.gameObject);
         }
         else
         {
-            // すでにいる場合は、あとから来た自分を消す
-            Destroy(gameObject);
+            // すでにいる場合は、あとから来た GameData ごと消す
+            Destroy(transform.root.gameObject);
         }
-    }   
+    }
 
     /// <summary>
     /// お金の更新
     /// </summary>
     private void Update()
     {
-        if (monayText == null) return;
         if (DayManager.Instance == null) return;
 
         int index = DayManager.Instance.currentQuotaIndex;
 
         // 全部クリアしたあとは、配列の外を読まないように止める
         if (index >= targetMoneys.Length) return;
-
-        monayText.text = $"{currentMonay}$/{targetMoneys[index]}$";
     }
 
     /// <summary>
@@ -94,4 +87,16 @@ public class MonayManager : MonoBehaviour
         currentMonay -= amount;
     }
 
+    /// <summary>
+    /// 「今のお金/目標金額」の文字を作る
+    /// </summary>
+    public string GetMoneyText()
+    {
+        if (DayManager.Instance == null) return $"{currentMonay}$";
+
+        int index = DayManager.Instance.currentQuotaIndex;
+        if (index >= targetMoneys.Length) return $"{currentMonay}$";
+
+        return $"{currentMonay}$/{targetMoneys[index]}$";
+    }
 }
