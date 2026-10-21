@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -61,10 +62,11 @@ public class PlayerLook : MonoBehaviour
             int CarLayer = LayerMask.NameToLayer("Car");
             if (hit.collider.gameObject.layer == CarLayer)
             {
-                SceneTeleporter hitCCar = hit.collider.GetComponentInParent<SceneTeleporter>();
-                if (Input.GetMouseButtonDown(0))
+                SceneTeleporter hitCar = hit.collider.GetComponentInParent<SceneTeleporter>();
+                if (Input.GetMouseButtonDown(0)&!hitCar.isloading)
                 {
-                    hitCCar.OpenLodingPanel();
+                    hitCar.isloading = true;
+                    hitCar.OpenLodingPanel();
                 }
             }
 

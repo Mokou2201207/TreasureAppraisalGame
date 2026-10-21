@@ -21,6 +21,9 @@ public class SceneTeleporter : MonoBehaviour
     [Header("ローディングの車Image"), SerializeField]
     private GameObject loadingCarImage;
 
+    //ローディンクしているかどうか
+    public bool isloading=false;
+
     /// <summary>
     /// 開始処理
     /// </summary>
@@ -55,6 +58,9 @@ public class SceneTeleporter : MonoBehaviour
         {
             Debug.LogError("AudioSourceがありません");
         }
+
+        //ローディンクのフラグをオフに
+        isloading=false;
     }
 
     /// <summary>
