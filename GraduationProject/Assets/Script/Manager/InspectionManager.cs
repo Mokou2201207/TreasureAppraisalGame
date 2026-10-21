@@ -90,6 +90,9 @@ public class InspectionManager : MonoBehaviour
 
     public bool IsInspecting => isInspecting;
 
+    // 鑑定を終えたときのお宝の状態とプレイヤーのチェック（買い取りが成立したら持ち物に入れる）
+    private PurchasedItem pendingRecord;
+
     private void Awake()
     {
         if (Instance == null)
@@ -257,6 +260,9 @@ public class InspectionManager : MonoBehaviour
         {
             blurOrDarkPanel.SetActive(false);
         }
+
+        // チェックが消える前に、鑑定結果を覚えておく
+        SaveAppraisalRecord();
 
         // UIテキストの表示クリア
         ClearInspectionUI();
@@ -557,6 +563,44 @@ public class InspectionManager : MonoBehaviour
         if (mission2CircleMark != null) mission2CircleMark.SetActive(false);
 
         CalculateTotalPrice();
+    }
+
+    /// <summary>
+    /// お宝の本当の状態と、プレイヤーが付けたチェックを記録する
+    /// </summary>
+    private void SaveAppraisalRecord()
+    {
+        if (currentItemData == null)
+        {
+            pendingRecord = null;
+            return;
+        }
+
+        pendingRecord = new PurchasedItem
+        {
+            itemName = currentItemData.itemName,
+            highestPrice = currentItemData.highestPrice,
+
+            isDamaged = currentItemData.isDamaged,
+            isCustomerDescription = currentItemData.isCustomerDescription,
+            isAppraisalMission1 = currentItemData.isAppraisalMission1,
+            isAppraisalMission2 = currentItemData.isAppraisalMission2,
+
+            checkedDamaged = damagedCircleMark != null && damagedCircleMark.activeSelf,
+            checkedDescriptionWrong = customerDescriptionCircleMark != null && customerDescriptionCircleMark.activeSelf,
+            checkedMission1 = mission1CircleMark != null && mission1CircleMark.activeSelf,
+            checkedMission2 = mission2CircleMark != null && mission2CircleMark.activeSelf,
+        };
+    }
+
+    /// <summary>
+    /// 記録した鑑定結果を受け取る（受け取ったら記録は空にする）
+    /// </summary>
+    public PurchasedItem TakeAppraisalRecord()
+    {
+        PurchasedItem record = pendingRecord;
+        pendingRecord = null;
+        return record;
     }
 
     /// <summary>
