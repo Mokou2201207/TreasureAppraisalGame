@@ -18,6 +18,7 @@ public class KeyHintUI : MonoBehaviour
     [SerializeField] private Sprite eKeyIcon;
     [SerializeField] private Sprite rKeyIcon;
     [SerializeField] private Sprite tabKeyIcon;
+    [SerializeField] private Sprite qKeyIcon;
 
     [Header("カーソルの先を調べる距離（PlayerLookが見つからないときに使う）")]
     [SerializeField] private float lookDistance = 2f;
@@ -49,7 +50,10 @@ public class KeyHintUI : MonoBehaviour
         if (inventoryUI == null) inventoryUI = FindObjectOfType<InventoryUI>();
         if (inventoryUI != null && inventoryUI.IsOpen) return "Inventory";
 
-        if (InspectionManager.Instance != null && InspectionManager.Instance.IsInspecting) return "Inspecting";
+        if (InspectionManager.Instance != null && InspectionManager.Instance.IsInspecting)
+        {
+            return InspectionManager.Instance.IsSpeechBubbleOpen ? "InspectingTalk" : "Inspecting";
+        }
         if (NegotiationManager.Instance != null && NegotiationManager.Instance.IsNegotiating) return "Negotiating";
 
         // 画面中央の先に何があるか調べる
@@ -117,10 +121,19 @@ public class KeyHintUI : MonoBehaviour
                 AddRow("回す（ドラッグ）", leftClickIcon);
                 AddRow("拡大・縮小", wheelIcon);
                 AddRow("向きを戻す", rKeyIcon);
+                AddRow("お客さんの話を聞く", qKeyIcon);
+                AddRow("鑑定を終える", rightClickIcon);
+                break;
+            case "InspectingTalk":
+                AddRow("回す（ドラッグ）", leftClickIcon);
+                AddRow("拡大・縮小", wheelIcon);
+                AddRow("向きを戻す", rKeyIcon);
+                AddRow("話を閉じる", qKeyIcon);
                 AddRow("鑑定を終える", rightClickIcon);
                 break;
             case "Negotiating":
                 AddRow("ボタンで値段を決める", leftClickIcon);
+                AddRow("鑑定に戻る", rightClickIcon);
                 break;
             case "Customer":
                 AddRow("お宝を見せてもらう", leftClickIcon);

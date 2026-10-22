@@ -21,6 +21,13 @@ public class DealResultUI : MonoBehaviour
     [SerializeField] private Sprite successSprite;
     [SerializeField] private Sprite failureSprite;
 
+    [Header("結果のSE")]
+    [SerializeField] private AudioClip successSE;
+    [SerializeField] private AudioClip failureSE;
+    [SerializeField, Range(0f, 1f)] private float seVolume = 1f;
+    [Tooltip("SEを鳴らすAudioSource（空なら自動で用意する）")]
+    [SerializeField] private AudioSource seSource;
+
     [Header("金額の文字の色")]
     [SerializeField] private Color successColor = new Color(0.94f, 0.39f, 0.35f);
     [SerializeField] private Color failureColor = new Color(0.69f, 0.73f, 0.80f);
@@ -44,6 +51,12 @@ public class DealResultUI : MonoBehaviour
         Instance = this;
 
         if (stampImage != null) stampBaseScale = stampImage.transform.localScale;
+
+        // SE用のAudioSourceがなければ用意する（画面のUIなので距離で音量が変わらない2Dにする）
+        if (seSource == null) seSource = GetComponent<AudioSource>();
+        if (seSource == null) seSource = gameObject.AddComponent<AudioSource>();
+        seSource.playOnAwake = false;
+        seSource.spatialBlend = 0f;
 
         if (group == null) group = GetComponent<CanvasGroup>();
         if (group != null)
@@ -79,6 +92,10 @@ public class DealResultUI : MonoBehaviour
             amountText.text = success ? $"-{spent:N0}$" : $"鑑定料 -{spent:N0}$";
             amountText.color = success ? successColor : failureColor;
         }
+
+        // 結果に合わせたSEを鳴らす
+        AudioClip se = success ? successSE : failureSE;
+        if (se != null && seSource != null) seSource.PlayOneShot(se, seVolume);
 
         if (playCoroutine != null) StopCoroutine(playCoroutine);
         playCoroutine = StartCoroutine(PlayRoutine());

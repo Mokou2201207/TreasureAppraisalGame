@@ -28,6 +28,8 @@ public class InspectionManager : MonoBehaviour
     [SerializeField] private Text appraisalMission2Text;
 
     [Header("鑑定金額表示用UIテキスト")]
+    [Tooltip("お宝の名前を表示するテキスト")]
+    [SerializeField] private Text itemNameText;
     [SerializeField] private Text highestPriceText;
     [SerializeField] private Text damagedPriceText;
     [SerializeField] private Text customerDescriptionPriceText;
@@ -44,6 +46,41 @@ public class InspectionManager : MonoBehaviour
     [SerializeField] private GameObject mission1CircleMark;
     [SerializeField] private Button mission2Button;
     [SerializeField] private GameObject mission2CircleMark;
+
+    [Header("お客さんの話（吹き出し）")]
+    [Tooltip("お客さんの話を出したり閉じたりするキー")]
+    [SerializeField] private KeyCode talkKey = KeyCode.Q;
+    [Tooltip("吹き出しのオブジェクト（画像とテキストの親）")]
+    [SerializeField] private GameObject speechBubble;
+    [Tooltip("吹き出しの中に出すテキスト")]
+    [SerializeField] private Text speechBubbleText;
+    [Tooltip("吹き出しが出てくるときに、どれだけずれた位置からスライドしてくるか")]
+    [SerializeField] private Vector2 bubbleSlideOffset = new Vector2(-80f, 0f);
+    [Tooltip("吹き出しがスライドする時間（秒）")]
+    [SerializeField] private float bubbleSlideDuration = 0.25f;
+    [Tooltip("1文字出すまでの時間（秒）")]
+    [SerializeField] private float charInterval = 0.05f;
+
+    [Header("お客さんが喋るときのSE")]
+    [SerializeField] private AudioClip talkSE;
+    [SerializeField, Range(0f, 1f)] private float talkSEVolume = 0.6f;
+    [Tooltip("何文字ごとにSEを鳴らすか")]
+    [SerializeField] private int talkSEEveryChars = 2;
+    [Tooltip("SEの高さのばらつき（毎回少し変えて喋っている感じにする）")]
+    [SerializeField] private float talkSEPitchRange = 0.08f;
+    [SerializeField] private AudioSource talkSESource;
+
+    // 吹き出しの状態
+    private enum BubbleState { Hidden, Opening, Shown, Closing }
+    private BubbleState bubbleState = BubbleState.Hidden;
+    private Coroutine bubbleCoroutine;
+    private RectTransform bubbleRect;
+    private CanvasGroup bubbleGroup;
+    private Vector2 bubbleBasePos;
+    private string fullTalkText = "";
+
+    // 吹き出しが出ているかどうか（キー表示の切り替えに使う）
+    public bool IsSpeechBubbleOpen => bubbleState != BubbleState.Hidden;
 
     private ItemData currentItemData;
     public ItemData CurrentItemData => currentItemData;
@@ -62,6 +99,13 @@ public class InspectionManager : MonoBehaviour
     [SerializeField] private bool lookAtInspectionTable = true; // 移動時に自動でお宝（鑑定台）の方向を向くか
     [SerializeField] private bool smoothCameraMove = true;      // スムーズな補間移動を行うか
     [SerializeField] private float cameraMoveSpeed = 6.0f;       // カメラ移動スピード
+
+    [Header("振り向くときのSE")]
+    [Tooltip("鑑定台へ振り向くときと、お客さんへ振り向き返すときのSE")]
+    [SerializeField] private AudioClip turnSE;
+    [SerializeField, Range(0f, 1f)] private float turnSEVolume = 1f;
+    [Tooltip("SEを鳴らすAudioSource（空なら自動で用意する）")]
+    [SerializeField] private AudioSource turnSESource;
 
     [Header("交渉時のカメラ設定")]
     [Tooltip("お客さんの顔の高さオフセット")]
@@ -93,6 +137,13 @@ public class InspectionManager : MonoBehaviour
     // 鑑定を終えたときのお宝の状態とプレイヤーのチェック（買い取りが成立したら持ち物に入れる）
     private PurchasedItem pendingRecord;
 
+    // 最後に鑑定したお宝（交渉から鑑定に戻るときに使う）
+    private GameObject lastInspectedTarget;
+    // 交渉から鑑定に戻っている途中かどうか
+    private bool isReturningToInspection = false;
+    // 鑑定を始めたフレーム（交渉から戻った右クリックで、すぐ鑑定が終わらないようにする）
+    private int inspectionStartFrame = -1;
+
     private void Awake()
     {
         if (Instance == null)
@@ -109,6 +160,8 @@ public class InspectionManager : MonoBehaviour
         {
             blurOrDarkPanel.SetActive(false);
         }
+
+        SetupSpeechBubble();
     }
 
     private void Start()
@@ -140,6 +193,8 @@ public class InspectionManager : MonoBehaviour
     {
         if (isInspecting) return;
         isInspecting = true;
+        lastInspectedTarget = itemPrefab;
+        inspectionStartFrame = Time.frameCount;
 
         AutoFindPlayerComponents();
 
@@ -409,9 +464,14 @@ public class InspectionManager : MonoBehaviour
         if (mainCamera == null) mainCamera = Camera.main;
         if (mainCamera == null) return;
 
-        // 元の位置・回転を記憶
-        savedCameraPos = mainCamera.transform.position;
-        savedCameraRot = mainCamera.transform.rotation;
+        // 元の位置・回転を記憶（交渉から戻るときは、最初に覚えた位置をそのまま使う）
+        if (!isReturningToInspection)
+        {
+            savedCameraPos = mainCamera.transform.position;
+            savedCameraRot = mainCamera.transform.rotation;
+        }
+
+        PlayTurnSE(turnSE);
 
         Vector3 targetPos = (inspectionCameraPos != null) ? inspectionCameraPos.position : mainCamera.transform.position;
         Quaternion targetRot = (inspectionCameraPos != null) ? inspectionCameraPos.rotation : mainCamera.transform.rotation;
@@ -446,6 +506,8 @@ public class InspectionManager : MonoBehaviour
     {
         if (mainCamera == null) mainCamera = Camera.main;
         if (mainCamera == null) return;
+
+        PlayTurnSE(turnSE);
 
         MoveWaypoint customer = FindCurrentCustomer();
         Vector3 targetPos = savedCameraPos;
@@ -495,6 +557,23 @@ public class InspectionManager : MonoBehaviour
     }
 
     /// <summary>
+    /// 振り向くときのSEを鳴らす
+    /// </summary>
+    private void PlayTurnSE(AudioClip clip)
+    {
+        if (clip == null) return;
+
+        // SE用のAudioSourceがなければ用意する（距離で音量が変わらない2Dにする）
+        if (turnSESource == null)
+        {
+            turnSESource = gameObject.AddComponent<AudioSource>();
+            turnSESource.playOnAwake = false;
+            turnSESource.spatialBlend = 0f;
+        }
+        turnSESource.PlayOneShot(clip, turnSEVolume);
+    }
+
+    /// <summary>
     /// カメラの位置・回転をスムーズに補間移動するコルーチン
     /// </summary>
     private IEnumerator AnimateCamera(Vector3 targetPos, Quaternion targetRot)
@@ -531,9 +610,21 @@ public class InspectionManager : MonoBehaviour
     {
         // 1. Enterキー押下で「購入・買い取り決定＆お宝回収＆お客さん帰宅」処理
         // 2. 右クリックまたはESCでキャンセル/鑑定終了
-        if (isInspecting && Input.GetMouseButtonDown(1))
+        if (isInspecting && Input.GetMouseButtonDown(1) && Time.frameCount != inspectionStartFrame)
         {
             EndInspection();
+        }
+
+        if (isInspecting && Input.GetKeyDown(talkKey))
+        {
+            OnTalkKeyPressed();
+        }
+
+        // ESCの設定画面を閉じるとカーソルが固定されるので、鑑定中は出し直す
+        if (isInspecting && Time.timeScale > 0f && Cursor.lockState != CursorLockMode.None)
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
         }
     }
 
@@ -550,6 +641,11 @@ public class InspectionManager : MonoBehaviour
         if (itemCustomerDescriptionText != null) itemCustomerDescriptionText.text = itemData.itemCustomerDescription;
         if (appraisalMission1Text != null) appraisalMission1Text.text = itemData.appraisalMission1;
         if (appraisalMission2Text != null) appraisalMission2Text.text = itemData.appraisalMission2;
+
+        if (itemNameText != null) itemNameText.text = itemData.itemName.ToString();
+        fullTalkText = itemData.itemCustomerDescription;
+        // 吹き出しはキーを押すまで閉じておく
+        HideSpeechBubbleImmediately();
 
         if (highestPriceText != null) highestPriceText.text = itemData.highestPrice.ToString("N0") + "$";
         if (damagedPriceText != null) damagedPriceText.text = itemData.damagedPrice.ToString("N0") + "$";
@@ -594,12 +690,36 @@ public class InspectionManager : MonoBehaviour
     }
 
     /// <summary>
+    /// 交渉をやめて、同じお宝の鑑定に戻る（付けたチェックはそのまま残す）
+    /// </summary>
+    public void ReturnToInspection()
+    {
+        if (isInspecting || lastInspectedTarget == null) return;
+
+        PurchasedItem checks = pendingRecord;
+
+        isReturningToInspection = true;
+        StartInspection(lastInspectedTarget);
+        isReturningToInspection = false;
+
+        if (checks != null)
+        {
+            if (damagedCircleMark != null) damagedCircleMark.SetActive(checks.checkedDamaged);
+            if (customerDescriptionCircleMark != null) customerDescriptionCircleMark.SetActive(checks.checkedDescriptionWrong);
+            if (mission1CircleMark != null) mission1CircleMark.SetActive(checks.checkedMission1);
+            if (mission2CircleMark != null) mission2CircleMark.SetActive(checks.checkedMission2);
+            CalculateTotalPrice();
+        }
+    }
+
+    /// <summary>
     /// 記録した鑑定結果を受け取る（受け取ったら記録は空にする）
     /// </summary>
     public PurchasedItem TakeAppraisalRecord()
     {
         PurchasedItem record = pendingRecord;
         pendingRecord = null;
+        lastInspectedTarget = null;
         return record;
     }
 
@@ -614,6 +734,10 @@ public class InspectionManager : MonoBehaviour
         if (itemCustomerDescriptionText != null) itemCustomerDescriptionText.text = string.Empty;
         if (appraisalMission1Text != null) appraisalMission1Text.text = string.Empty;
         if (appraisalMission2Text != null) appraisalMission2Text.text = string.Empty;
+
+        if (itemNameText != null) itemNameText.text = string.Empty;
+        fullTalkText = "";
+        HideSpeechBubbleImmediately();
 
         if (highestPriceText != null) highestPriceText.text = string.Empty;
         if (damagedPriceText != null) damagedPriceText.text = string.Empty;
@@ -665,6 +789,143 @@ public class InspectionManager : MonoBehaviour
                 CalculateTotalPrice();
             });
         }
+    }
+
+    /// <summary>
+    /// 吹き出しの元の位置を覚えて、閉じた状態にしておく
+    /// </summary>
+    private void SetupSpeechBubble()
+    {
+        if (speechBubble == null) return;
+
+        bubbleRect = speechBubble.GetComponent<RectTransform>();
+        if (bubbleRect != null) bubbleBasePos = bubbleRect.anchoredPosition;
+
+        bubbleGroup = speechBubble.GetComponent<CanvasGroup>();
+        if (bubbleGroup == null) bubbleGroup = speechBubble.AddComponent<CanvasGroup>();
+
+        HideSpeechBubbleImmediately();
+    }
+
+    /// <summary>
+    /// 話のキーを押したときの処理（出ている途中や戻っている途中は受け付けない）
+    /// </summary>
+    private void OnTalkKeyPressed()
+    {
+        if (speechBubble == null) return;
+
+        if (bubbleState == BubbleState.Hidden)
+        {
+            if (bubbleCoroutine != null) StopCoroutine(bubbleCoroutine);
+            bubbleCoroutine = StartCoroutine(OpenSpeechBubble());
+        }
+        else if (bubbleState == BubbleState.Shown)
+        {
+            if (bubbleCoroutine != null) StopCoroutine(bubbleCoroutine);
+            bubbleCoroutine = StartCoroutine(CloseSpeechBubble());
+        }
+    }
+
+    /// <summary>
+    /// 吹き出しをスライドで出して、1文字ずつ文字を流す
+    /// </summary>
+    private IEnumerator OpenSpeechBubble()
+    {
+        bubbleState = BubbleState.Opening;
+        speechBubble.SetActive(true);
+        if (speechBubbleText != null) speechBubbleText.text = "";
+
+        yield return SlideSpeechBubble(0f, 1f);
+
+        string text = fullTalkText ?? "";
+        int spokenCount = 0;
+        for (int i = 1; i <= text.Length; i++)
+        {
+            if (speechBubbleText != null) speechBubbleText.text = text.Substring(0, i);
+
+            // 空白や記号では鳴らさない
+            char c = text[i - 1];
+            if (!char.IsWhiteSpace(c) && !char.IsPunctuation(c))
+            {
+                if (spokenCount % Mathf.Max(1, talkSEEveryChars) == 0) PlayTalkSE();
+                spokenCount++;
+            }
+            yield return new WaitForSecondsRealtime(charInterval);
+        }
+
+        bubbleState = BubbleState.Shown;
+        bubbleCoroutine = null;
+    }
+
+    /// <summary>
+    /// 吹き出しをスライドで戻して、戻り切ったら文字を消す
+    /// </summary>
+    private IEnumerator CloseSpeechBubble()
+    {
+        bubbleState = BubbleState.Closing;
+
+        yield return SlideSpeechBubble(1f, 0f);
+
+        HideSpeechBubbleImmediately();
+        bubbleCoroutine = null;
+    }
+
+    /// <summary>
+    /// 吹き出しの位置と透明度を動かす（0で閉じた位置、1で出た位置）
+    /// </summary>
+    private IEnumerator SlideSpeechBubble(float from, float to)
+    {
+        float t = 0f;
+        while (t < 1f)
+        {
+            t += Time.unscaledDeltaTime / Mathf.Max(0.01f, bubbleSlideDuration);
+            // 最後がゆっくりになる動き
+            float k = Mathf.Clamp01(t);
+            k = 1f - (1f - k) * (1f - k);
+            ApplyBubbleProgress(Mathf.Lerp(from, to, k));
+            yield return null;
+        }
+        ApplyBubbleProgress(to);
+    }
+
+    private void ApplyBubbleProgress(float p)
+    {
+        if (bubbleRect != null) bubbleRect.anchoredPosition = bubbleBasePos + bubbleSlideOffset * (1f - p);
+        if (bubbleGroup != null) bubbleGroup.alpha = p;
+    }
+
+    /// <summary>
+    /// 吹き出しをすぐに閉じて、文字をリセットする
+    /// </summary>
+    private void HideSpeechBubbleImmediately()
+    {
+        if (bubbleCoroutine != null)
+        {
+            StopCoroutine(bubbleCoroutine);
+            bubbleCoroutine = null;
+        }
+        bubbleState = BubbleState.Hidden;
+
+        if (speechBubbleText != null) speechBubbleText.text = string.Empty;
+        ApplyBubbleProgress(0f);
+        if (speechBubble != null) speechBubble.SetActive(false);
+    }
+
+    /// <summary>
+    /// 喋っている感じのSEを鳴らす（毎回少し高さを変える）
+    /// </summary>
+    private void PlayTalkSE()
+    {
+        if (talkSE == null) return;
+
+        if (talkSESource == null)
+        {
+            talkSESource = gameObject.AddComponent<AudioSource>();
+            talkSESource.playOnAwake = false;
+            talkSESource.spatialBlend = 0f;
+        }
+        talkSESource.pitch = 1f + UnityEngine.Random.Range(-talkSEPitchRange, talkSEPitchRange);
+        talkSESource.PlayOneShot(talkSE, talkSEVolume);
     }
 
     /// <summary>

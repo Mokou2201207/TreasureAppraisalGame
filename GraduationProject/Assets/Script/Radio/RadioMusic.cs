@@ -52,7 +52,7 @@ public class RadioMusic : MonoBehaviour
     private Camera mainCamera;
     private Coroutine switchCoroutine;
     // ラジオがついているかどうか
-    private bool isPowerOn = true;
+    [SerializeField]private bool isPowerOn = true;
     public bool IsPowerOn => isPowerOn;
     public float InteractDistance => GetInteractDistance();
 

@@ -26,6 +26,8 @@ public class NegotiationManager : MonoBehaviour
     [SerializeField] private Button sendButton;
     [Tooltip("交渉結果を表示するテキスト")]
     [SerializeField] private Text resultText;
+    [Tooltip("押すと鑑定に戻るボタン（なくても右クリックで戻れる）")]
+    [SerializeField] private Button backToInspectionButton;
 
     [Header("失敗確率計算設定")]
     [Tooltip("基本失敗確率（パーセント）")]
@@ -51,6 +53,8 @@ public class NegotiationManager : MonoBehaviour
     private float baseAppraisalPrice = 0f;
     // 交渉結果の判定中かどうか
     private bool isResolving = false;
+    // 交渉パネルを開いたフレーム（鑑定を終えた右クリックで、すぐ戻ってしまわないようにする）
+    private int openedFrame = -1;
 
     // 交渉結果が出たときに成否と提示額を通知する
     public event Action<bool, float> OnNegotiationResolved;
@@ -100,6 +104,12 @@ public class NegotiationManager : MonoBehaviour
             sendButton.onClick.RemoveListener(OnSendButtonClicked);
             sendButton.onClick.AddListener(OnSendButtonClicked);
         }
+
+        if (backToInspectionButton != null)
+        {
+            backToInspectionButton.onClick.RemoveListener(BackToInspection);
+            backToInspectionButton.onClick.AddListener(BackToInspection);
+        }
     }
 
     /// <summary>
@@ -126,6 +136,7 @@ public class NegotiationManager : MonoBehaviour
             if (sendButton == null) sendButton = FindComponentInChildren<Button>(appraisalAcceptancePanel, "SendButton", "DecideButton", "OkButton");
             if (appraisalFeeText == null) appraisalFeeText = FindComponentInChildren<Text>(appraisalAcceptancePanel, "AppraisalFeeText", "FeeText");
             if (resultText == null) resultText = FindComponentInChildren<Text>(appraisalAcceptancePanel, "ResultText", "NegotiationResultText");
+            if (backToInspectionButton == null) backToInspectionButton = FindComponentInChildren<Button>(appraisalAcceptancePanel, "BackToInspectionButton", "BackButton");
         }
     }
 
@@ -171,6 +182,7 @@ public class NegotiationManager : MonoBehaviour
         }
 
         isResolving = false;
+        openedFrame = Time.frameCount;
         if (resultText != null) resultText.text = string.Empty;
 
         // UI表示を更新
@@ -179,6 +191,35 @@ public class NegotiationManager : MonoBehaviour
 
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
+    }
+
+    private void Update()
+    {
+        if (!IsNegotiating) return;
+
+        // ESCの設定画面を閉じるとカーソルが固定されるので、交渉中は出し直す
+        if (Time.timeScale > 0f && Cursor.lockState != CursorLockMode.None)
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+        }
+
+        if (Input.GetMouseButtonDown(1) && Time.frameCount != openedFrame)
+        {
+            BackToInspection();
+        }
+    }
+
+    /// <summary>
+    /// 交渉をやめて鑑定に戻る処理
+    /// </summary>
+    public void BackToInspection()
+    {
+        if (isResolving || Time.timeScale == 0f) return;
+        if (InspectionManager.Instance == null) return;
+
+        HideAppraisalAcceptancePanel();
+        InspectionManager.Instance.ReturnToInspection();
     }
 
     /// <summary>
