@@ -44,8 +44,8 @@ public class ItemData : MonoBehaviour
 
     [Header("傷がついているか"), SerializeField]
     public bool isDamaged = false;
-    [Header("お客さんの情報とあっているか"), SerializeField]
-    public bool isCustomerDescription = false;
+    [Header("お客さんの話がちがうか"), SerializeField]
+    public bool isDescriptionWrong = false;
     [Header("鑑定オリジナルミッション①"), SerializeField]
     public bool isAppraisalMission1 = false;
     [Header("鑑定オリジナルミッション②"), SerializeField]
@@ -94,22 +94,40 @@ public class ItemData : MonoBehaviour
                 appraisalMission2 = "全体に付着した錆の広がり具合を確認する";
                 //最高金額
                 highestPrice = 5000f;
-                string priceText1 = highestPrice.ToString("N0") + "$";
+                string oldPotPriceText1 = highestPrice.ToString("N0") + "$";
                 //傷つきのマイナス値段
                 damagedPrice = -1000f;
-                string priceText2 = highestPrice.ToString("N0") + "$";
+                string oldPotPriceText2 = highestPrice.ToString("N0") + "$";
                 //情報が違う場合のマイナス値段
                 customerDescriptionPrice = -500f;
-                string priceText3 = highestPrice.ToString("N0") + "$";
+                string oldPotPriceText3 = highestPrice.ToString("N0") + "$";
                 //鑑定オリジナルミッションの値段
                 isCustomerDescriptionPrice1 = -1500f;
-                string priceText4 = highestPrice.ToString("N0") + "$";
+                string oldPotPriceText4 = highestPrice.ToString("N0") + "$";
                 //鑑定オリジナルミッションの値段
                 isCustomerDescriptionPrice2 = -2000f;
-                string priceText5 = highestPrice.ToString("N0") + "$";
+                string oldPotPriceText5 = highestPrice.ToString("N0") + "$";
                 break;
 
             case ItemCategory.ヨーロッパ風の壺:
+                itemDescription = "遠い国の古いお城で、花を生けるのに使われていたと言われる壺。\n金色のふちどりと、つるバラの絵付けがうつくしい。";
+                appraisalMission1 = "バラが一輪だけ書き足されているか";
+                appraisalMission2 = "絵が繋がっていない";
+                //最高金額
+                highestPrice = 8500f;
+                string europePotPriceText1 = highestPrice.ToString("N0") + "$";
+                //傷つきのマイナス値段
+                damagedPrice = -1000f;
+                string europePotPriceText2 = highestPrice.ToString("N0") + "$";
+                //情報が違う場合のマイナス値段
+                customerDescriptionPrice = -500f;
+                string europePotPriceText3 = highestPrice.ToString("N0") + "$";
+                //鑑定オリジナルミッションの値段
+                isCustomerDescriptionPrice1 = -1000f;
+                string europePotPriceText4 = highestPrice.ToString("N0") + "$";
+                //鑑定オリジナルミッションの値段
+                isCustomerDescriptionPrice2 = -3000f;
+                string europePotPriceText5 = highestPrice.ToString("N0") + "$";
                 break;
         }
             ApplyRandomCustomerDescription();
@@ -130,27 +148,52 @@ public class ItemData : MonoBehaviour
                 // 古い壺用の正解セリフ候補
                 correctTexts = new string[]
                 {
-                    "「実家の古い蔵を片付けてたら、床下からゴロゴロ出てきたんだ。間違いなく先祖の代からのものさ」",
-                    "「うちのじいちゃんが昔、骨董市で太鼓判を押されて買ったやつだよ」"
+                    "実家の古い蔵を片付けてたら、床下からゴロゴロ出てきたんだ。間違いなく先祖の代からのものさ",
+                    "うちのじいちゃんが昔、骨董市で太鼓判を押されて買ったやつだよ",
+                    "ひいおじいちゃんの家の蔵から出てきた、江戸時代の壺らしいです",
+                    "つやのない、土そのままの色の壺なんです",
+                    "派手な絵とかは何もない、地味な壺ですけど高く売れるかな？？",
+                    "ずっと使われてきたから、すり傷がいっぱいあるんです",
                 };
                 // 古い壺用の不正解セリフ候補
                 incorrectTexts = new string[]
                 {
-                    "「さっき裏の畑を掘り返したら、ピカピカの壺が出てきたんだ！すごいお宝だろ？」",
-                    "「みてくれよ！！これけっこう古いだろう？？自分はこれは縄文時代に作られたやつじゃないかな？？」"
+                    "さっき裏の畑を掘り返したら、ピカピカの壺が出てきたんだ！すごいお宝だろ？",
+                    "みてくれよ！！これけっこう古いだろう？？自分はこれは縄文時代に作られたやつじゃないかな？？",
+                    "この宝みてくれよ！古いだろ？？傷がすごすぎるんだ今にも砕けそうな傷じゃない？？",
+                    "江戸時代のはじめごろの壺だって、鑑定書にありました",
+                    "この壺濡らしたら虹色になるらしいよ",
+                    "平安時代のものらしくて、すごく古いんですよ",
+                    "土の色の壺で、表面はつるつるにつやが出ているんです",
+                    "江戸の後期の土の壺で、スレも多いんですけど、実は去年、職人さんが昔風に作ったものなんです",
+                    "素朴で、使い込まれた、江戸時代後期の壺……だと思ってたんですけど、焼き物の教室で作ったやつでした",
                 };
                 break;
 
             case ItemCategory.ヨーロッパ風の壺:
                 correctTexts = new string[]
                 {
-                    "「旅の商人からアンティーク品として正式に譲り受けたインポート品の壺さ」",
-                    "「祖母が外国の貿易商から形見として受け継いだものだと聞いてい」"
+                    "おばあちゃんが若いころ、外国のお城の売り立てで買ってきた壺なんです",
+                    "昔はお城の広間で、バラを生けていたって聞いてます",
+                    "白い地にピンクのバラって、なんだか上品ですよね",
+                    "遠い国のお城にあったものだって、箱の紙に書いてありました",
+                    "お城の持ち主が手放したときに、日本に渡ってきたらしいです",
+                    "口と底が金色で、ちょっとお姫さまっぽい壺なんです",
+                    "この壺は、遠い国の古いお城で、花を生けるのに使われていたそうですよ",
+                    "この壺ってふちどりは必ず金色で作るらしいですよ、決して銀で作らないらしいですよ、何でかな？？"
+
                 };
                 incorrectTexts = new string[]
                 {
-                    "「近所の雑貨屋のセールワゴンで、お皿と一緒に100円で山積みになってたやつだ！」",
-                    "「外国の王様が使っていたお下がりだって、道行く外国人が言ってたぞ！」"
+                    "近所の雑貨屋のセールワゴンで、お皿と一緒に100円で山積みになってたやつだ！",
+                    "この壺はねイタリア産らしいよ！みてて惚れ惚れするよね...",
+                    "青い線で、竹の絵が描いてある壺なんですよ",
+                    "バラが特徴的なんですよね...ちなみにくもると黒に変わるらしいですよ",
+                    "お寺のお坊さんが、お米を入れるのに使ってたそうです",
+                    "遠い国のお城で、ワインを入れるのに使われていたそうです",
+                    "金色のふちどりと、つるのアサガオの絵がきれいでしょう?",
+                    "遠い国の古い修道院で、花を生けていた壺だと聞きました",
+                    "お城で花を生けていた壺で、つぼみは一つも描いてないんですよ",
                 };
                 break;
         }
@@ -158,15 +201,15 @@ public class ItemData : MonoBehaviour
         if (correctTexts == null || incorrectTexts == null) return;
 
         // isCustomerDescriptionをアタッチ
-        if (isCustomerDescription)
-        {
-            int index = Random.Range(0, correctTexts.Length);
-            itemCustomerDescription = correctTexts[index];
-        }
-        else
+        if (isDescriptionWrong)
         {
             int index = Random.Range(0, incorrectTexts.Length);
             itemCustomerDescription = incorrectTexts[index];
+        }
+        else
+        {
+            int index = Random.Range(0, correctTexts.Length);
+            itemCustomerDescription = correctTexts[index];
         }
     }
 
@@ -182,7 +225,7 @@ public class ItemData : MonoBehaviour
         isDamaged=Random.value < damagedChance;
         isAppraisalMission1 = Random.value < mission1Chance;
         isAppraisalMission2 = Random.value < mission2Chance;
-        isCustomerDescription = Random.value >= wrongDescriptionChance;
+        isDescriptionWrong = Random.value < wrongDescriptionChance;
 
         isRandomized = true;
 

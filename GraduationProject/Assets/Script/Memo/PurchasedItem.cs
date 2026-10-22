@@ -12,7 +12,7 @@ public class PurchasedItem
 
     // 本当の状態（ItemData のフラグ）
     public bool isDamaged;
-    public bool isCustomerDescription;
+    public bool isDescriptionWrong;
     public bool isAppraisalMission1;
     public bool isAppraisalMission2;
 

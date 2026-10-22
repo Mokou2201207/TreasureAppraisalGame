@@ -678,7 +678,7 @@ public class InspectionManager : MonoBehaviour
             highestPrice = currentItemData.highestPrice,
 
             isDamaged = currentItemData.isDamaged,
-            isCustomerDescription = currentItemData.isCustomerDescription,
+            isDescriptionWrong = currentItemData.isDescriptionWrong,
             isAppraisalMission1 = currentItemData.isAppraisalMission1,
             isAppraisalMission2 = currentItemData.isAppraisalMission2,
 
