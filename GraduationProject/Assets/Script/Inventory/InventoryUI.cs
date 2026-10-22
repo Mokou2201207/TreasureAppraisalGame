@@ -21,6 +21,8 @@ public class InventoryUI : MonoBehaviour
     [Header("カードのプレハブ")]
     [SerializeField] private ItemCard cardPrefab;
 
+    [SerializeField] private AudioSource audioSource;
+
     public bool IsOpen => inventoryPanel != null && inventoryPanel.activeSelf;
 
     private void Start()
@@ -34,9 +36,15 @@ public class InventoryUI : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Tab))
         {
+            // 鑑定中と交渉中はインベントリを開けない
+            if (InspectionManager.Instance != null && InspectionManager.Instance.IsInspecting) return;
+            if (NegotiationManager.Instance != null && NegotiationManager.Instance.IsNegotiating) return;
+
             // プレイヤーはあとからスポーンするので、まだ見つけていなければ探す
             if (mouseLookScript == null) mouseLookScript = FindObjectOfType<MouseLook>();
             if (playerMoveScript == null) playerMoveScript = FindObjectOfType<PlayerMove>();
+
+            audioSource.Play();
 
             bool open = !inventoryPanel.activeSelf;
             inventoryPanel.SetActive(open);
