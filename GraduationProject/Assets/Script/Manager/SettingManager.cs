@@ -36,6 +36,9 @@ public class SettingManager : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Escape))
         {
+            // 掲示板を閉じるためのEscでは、設定画面を開かない
+            if (AuctionBoardUI.Instance != null && AuctionBoardUI.Instance.BlockEscape) return;
+
             //オプションが開いてなければ開く、開いていれば閉じる。
             if (!openSetting)
             {

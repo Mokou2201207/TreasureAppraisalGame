@@ -2,23 +2,26 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 /// <summary>
-/// ƒCƒ“ƒxƒ“ƒgƒŠ‚Ìˆ—
+/// ã‚¤ãƒ³ãƒ™ãƒ³ãƒˆãƒªã®å‡¦ç†â€»AIæ‹…å½“
 /// </summary>
 public class InventoryUI : MonoBehaviour
 {
-    [Header("ƒCƒ“ƒxƒ“ƒgƒŠ‚Ìƒpƒlƒ‹")]
+    [Header("ã‚¤ãƒ³ãƒ™ãƒ³ãƒˆãƒªã®ãƒ‘ãƒãƒ«")]
     [SerializeField] private GameObject inventoryPanel;
-    [Header("‹“_‚ğ“®‚©‚·ƒXƒNƒŠƒvƒg")]
+    [Header("è¦–ç‚¹ã‚’å‹•ã‹ã™ã‚¹ã‚¯ãƒªãƒ—ãƒˆ")]
     [SerializeField] private MouseLook mouseLookScript;
-    [Header("ˆÚ“®‚ÌƒXƒNƒŠƒvƒg")]
+    [Header("ç§»å‹•ã®ã‚¹ã‚¯ãƒªãƒ—ãƒˆ")]
     [SerializeField] private PlayerMove playerMoveScript;
 
-    [Header("‚Ü‚¾ƒJ[ƒh‚ª‚È‚¢‚Éo‚·ƒeƒLƒXƒg")]
+    // é–‹ã„ã¦ã„ã‚‹ã‚ã„ã ã€ã‚«ãƒ¼ãƒ‰ã®ã‚¯ãƒªãƒƒã‚¯ã§å¾Œã‚ã®ç‰©ã«åå¿œã—ãªã„ã‚ˆã†ã«æ­¢ã‚ã‚‹
+    private PlayerLook playerLookScript;
+
+    [Header("ã¾ã ã‚«ãƒ¼ãƒ‰ãŒãªã„æ™‚ã«å‡ºã™ãƒ†ã‚­ã‚¹ãƒˆ")]
     [SerializeField] private GameObject emptyText;
 
-    [Header("ƒJ[ƒh‚ğ•À‚×‚éêŠiScroll View ‚Ì Contentj")]
+    [Header("ã‚«ãƒ¼ãƒ‰ã‚’ä¸¦ã¹ã‚‹å ´æ‰€ï¼ˆScroll View ã® Contentï¼‰")]
     [SerializeField] private Transform cardParent;
-    [Header("ƒJ[ƒh‚ÌƒvƒŒƒnƒu")]
+    [Header("ã‚«ãƒ¼ãƒ‰ã®ãƒ—ãƒ¬ãƒãƒ–")]
     [SerializeField] private ItemCard cardPrefab;
 
     [SerializeField] private AudioSource audioSource;
@@ -27,7 +30,7 @@ public class InventoryUI : MonoBehaviour
 
     private void Start()
     {
-        // ƒCƒ“ƒxƒ“ƒgƒŠƒpƒlƒ‹‚ğ”ñ•\¦‚É‚·‚é
+        // ã‚¤ãƒ³ãƒ™ãƒ³ãƒˆãƒªãƒ‘ãƒãƒ«ã‚’éè¡¨ç¤ºã«ã™ã‚‹
         inventoryPanel.SetActive(false);
     }
 
@@ -36,13 +39,16 @@ public class InventoryUI : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Tab))
         {
-            // ŠÓ’è’†‚ÆŒğÂ’†‚ÍƒCƒ“ƒxƒ“ƒgƒŠ‚ğŠJ‚¯‚È‚¢
+            // é‘‘å®šä¸­ã¨äº¤æ¸‰ä¸­ã¯ã‚¤ãƒ³ãƒ™ãƒ³ãƒˆãƒªã‚’é–‹ã‘ãªã„
             if (InspectionManager.Instance != null && InspectionManager.Instance.IsInspecting) return;
             if (NegotiationManager.Instance != null && NegotiationManager.Instance.IsNegotiating) return;
+            // æ²ç¤ºæ¿ãŒé–‹ã„ã¦ã„ã‚‹ã‚ã„ã ã¯ã‚¤ãƒ³ãƒ™ãƒ³ãƒˆãƒªã‚’é–‹ã‘ãªã„
+            if (AuctionBoardUI.Instance != null && AuctionBoardUI.Instance.IsOpen) return;
 
-            // ƒvƒŒƒCƒ„[‚Í‚ ‚Æ‚©‚çƒXƒ|[ƒ“‚·‚é‚Ì‚ÅA‚Ü‚¾Œ©‚Â‚¯‚Ä‚¢‚È‚¯‚ê‚Î’T‚·
+            // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã¯ã‚ã¨ã‹ã‚‰ã‚¹ãƒãƒ¼ãƒ³ã™ã‚‹ã®ã§ã€ã¾ã è¦‹ã¤ã‘ã¦ã„ãªã‘ã‚Œã°æ¢ã™
             if (mouseLookScript == null) mouseLookScript = FindObjectOfType<MouseLook>();
             if (playerMoveScript == null) playerMoveScript = FindObjectOfType<PlayerMove>();
+            if (playerLookScript == null) playerLookScript = FindObjectOfType<PlayerLook>();
 
             audioSource.Play();
 
@@ -51,28 +57,29 @@ public class InventoryUI : MonoBehaviour
 
             if(open) RefreshCards();
 
-            // ŠJ‚¢‚Ä‚¢‚éŠÔ‚ÍƒJ[ƒ\ƒ‹‚ğo‚µ‚ÄA‹“_‚ÆˆÚ“®‚ğ~‚ß‚é
+            // é–‹ã„ã¦ã„ã‚‹é–“ã¯ã‚«ãƒ¼ã‚½ãƒ«ã‚’å‡ºã—ã¦ã€è¦–ç‚¹ã¨ç§»å‹•ã‚’æ­¢ã‚ã‚‹
             Cursor.lockState = open ? CursorLockMode.None : CursorLockMode.Locked;
             Cursor.visible = open;
             if (mouseLookScript != null) mouseLookScript.enabled = !open;
             if (playerMoveScript != null) playerMoveScript.enabled = !open;
+            if (playerLookScript != null) playerLookScript.enabled = !open;
         }
     }
 
     /// <summary>
-    /// ‚¿•¨ˆê——‚©‚çƒJ[ƒh‚ğ¶¬‚µ‚Ä•\¦‚·‚éƒƒ\ƒbƒh
+    /// æŒã¡ç‰©ä¸€è¦§ã‹ã‚‰ã‚«ãƒ¼ãƒ‰ã‚’ç”Ÿæˆã—ã¦è¡¨ç¤ºã™ã‚‹ãƒ¡ã‚½ãƒƒãƒ‰
     /// </summary>
     private void RefreshCards()
     {
         if (InventoryManager.Instance == null) return;
 
-        //‘O‚Éì‚Á‚½ƒJ[ƒh‚ğÁ‚·¦‚»‚¤‚µ‚È‚¢‚ÆŠJ‚­‚½‚ÑƒJ[ƒh‚ª‘‚¦‚é‚©‚ç
+        //å‰ã«ä½œã£ãŸã‚«ãƒ¼ãƒ‰ã‚’æ¶ˆã™â€»ãã†ã—ãªã„ã¨é–‹ããŸã³ã‚«ãƒ¼ãƒ‰ãŒå¢—ãˆã‚‹ã‹ã‚‰
         foreach (Transform child in cardParent)
         {
             Destroy(child.gameObject);
         }
 
-        //ˆê——‚Ì”‚¾‚¯ƒJ[ƒh‚ğì‚é
+        //ä¸€è¦§ã®æ•°ã ã‘ã‚«ãƒ¼ãƒ‰ã‚’ä½œã‚‹
         List<PurchasedItem> items = InventoryManager.Instance.items;
         for (int i = 0; i < items.Count; i++)
         {
@@ -80,7 +87,7 @@ public class InventoryUI : MonoBehaviour
             card.Setup(items[i], i + 1);
         }
 
-        //ƒJ[ƒh‚ª‚È‚¢ê‡‚ÌƒeƒLƒXƒg‚ğo‚·
+        //ã‚«ãƒ¼ãƒ‰ãŒãªã„å ´åˆã®ãƒ†ã‚­ã‚¹ãƒˆã‚’å‡ºã™
         if (emptyText!=null)
         {
             emptyText.SetActive(items.Count == 0);

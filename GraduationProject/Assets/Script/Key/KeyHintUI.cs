@@ -19,6 +19,7 @@ public class KeyHintUI : MonoBehaviour
     [SerializeField] private Sprite rKeyIcon;
     [SerializeField] private Sprite tabKeyIcon;
     [SerializeField] private Sprite qKeyIcon;
+    [SerializeField] private Sprite escKeyIcon;
 
     [Header("カーソルの先を調べる距離（PlayerLookが見つからないときに使う）")]
     [SerializeField] private float lookDistance = 2f;
@@ -49,6 +50,7 @@ public class KeyHintUI : MonoBehaviour
     {
         if (inventoryUI == null) inventoryUI = FindObjectOfType<InventoryUI>();
         if (inventoryUI != null && inventoryUI.IsOpen) return "Inventory";
+        if (AuctionBoardUI.Instance != null && AuctionBoardUI.Instance.IsOpen) return "BoardOpen";
 
         if (InspectionManager.Instance != null && InspectionManager.Instance.IsInspecting)
         {
@@ -80,6 +82,9 @@ public class KeyHintUI : MonoBehaviour
         }
 
         if (hit.collider.GetComponentInParent<SceneTeleporter>() != null) return "Car";
+
+        // PlayerLookと同じく、レイヤーで掲示板かどうかを見分ける
+        if (hit.collider.gameObject.layer == LayerMask.NameToLayer("AuctionBoard")) return "Board";
 
         return "None";
     }
@@ -150,6 +155,12 @@ public class KeyHintUI : MonoBehaviour
                 break;
             case "Car":
                 AddRow("オークションへ行く", leftClickIcon);
+                break;
+            case "Board":
+                AddRow("掲示板を見る", leftClickIcon);
+                break;
+            case "BoardOpen":
+                AddRow("閉じる", escKeyIcon);
                 break;
         }
     }

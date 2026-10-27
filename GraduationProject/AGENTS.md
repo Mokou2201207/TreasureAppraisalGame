@@ -31,6 +31,8 @@
     - `Assets/Script/Key/KeyHintUI.cs`
     - `Assets/Script/Text/DealResultUI.cs`
     - `Assets/Script/Text/AnimatedMoneyText.cs`
+    - `Assets/Script/Inventory/InventoryUI.cs`
+    - `Assets/Script/Board/AuctionBoardUI.cs`
   - それ以外のスクリプトは、読んで説明・助言するだけにとどめ、勝手に書き換えない。
 - **質問のときは編集しない**:
   - ユーザーがプログラムについて質問しているだけのときは、回答や説明のみ行い、ファイルを勝手に書き換えない。

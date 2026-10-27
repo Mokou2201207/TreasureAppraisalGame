@@ -58,16 +58,15 @@ public class PlayerLook : MonoBehaviour
                 }
             }
 
-            //車に触れたらオークションに売りに出す場所に移動
-            int CarLayer = LayerMask.NameToLayer("Car");
+            //掲示板に触れたら掲示板のUIを開く
+            int CarLayer = LayerMask.NameToLayer("AuctionBoard");
             if (hit.collider.gameObject.layer == CarLayer)
             {
-                SceneTeleporter hitCar = hit.collider.GetComponentInParent<SceneTeleporter>();
-                if (Input.GetMouseButtonDown(0)&!hitCar.isloading)
+                if (Input.GetMouseButtonDown(0)&&AuctionBoardUI.Instance!=null)
                 {
-                    hitCar.isloading = true;
-                    hitCar.OpenLodingPanel();
+                    AuctionBoardUI.Instance.Open();
                 }
+                return;
             }
 
 
