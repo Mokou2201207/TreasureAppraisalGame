@@ -22,6 +22,42 @@ public class AuctionBoardUI : MonoBehaviour
     [Header("パネルをふわっと出す時間（秒）")]
     [SerializeField] private float fadeTime = 0.2f;
 
+    [Header("お宝のカード")]
+    [Tooltip("カードを並べる場所（Scroll View の Content）")]
+    [SerializeField] private Transform cardParent;
+    [SerializeField] private BoardCard cardPrefab;
+    [Tooltip("出品できるお宝がないときに出すもの")]
+    [SerializeField] private GameObject emptyText;
+    [Tooltip("お宝の種類ごとの絵")]
+    [SerializeField] private ItemIcon[] itemIcons;
+
+    [Header("上のバー")]
+    [SerializeField] private Text moneyText;
+    [SerializeField] private Text listCountText;
+
+    [Header("右の詳しい情報")]
+    [SerializeField] private GameObject detailArea;
+    [SerializeField] private Image detailIcon;
+    [SerializeField] private Text detailNameText;
+    [SerializeField] private Text detailMemoText;
+    [SerializeField] private Text detailPriceText;
+    [SerializeField] private Text detailFeeText;
+    [SerializeField] private Button detailAddButton;
+    [SerializeField] private Text detailAddButtonText;
+
+    [Header("出品手数料（買値に対する割合）")]
+    [SerializeField, Range(0f, 1f)] private float feeRate = 0.05f;
+
+    /// <summary>
+    /// お宝の種類と絵の組み合わせ
+    /// </summary>
+    [System.Serializable]
+    public class ItemIcon
+    {
+        public ItemData.ItemCategory category;
+        public Sprite icon;
+    }
+
     // プレイヤーはあとからスポーンするので、開くときに探す
     private MouseLook mouseLook;
     private PlayerMove playerMove;
@@ -37,6 +73,15 @@ public class AuctionBoardUI : MonoBehaviour
     private Quaternion savedLocalRot;
     // パネルの透明度を変える部品
     private CanvasGroup panelGroup;
+
+    // 出品リストに入れたお宝（まだ貼り出す前）
+    private readonly List<PurchasedItem> listedItems = new List<PurchasedItem>();
+    // 並べたカードと、今選んでいるカード
+    private readonly List<BoardCard> cards = new List<BoardCard>();
+    private BoardCard selectedCard;
+
+    // 出品リストに入れたお宝の一覧（次の手順の申込書で使う）
+    public IReadOnlyList<PurchasedItem> ListedItems => listedItems;
 
     // 掲示板が開いているか（カメラが動いている途中も開いている扱いにする）
     public bool IsOpen => isMoving || (boardPanel != null && boardPanel.activeSelf);
@@ -62,6 +107,15 @@ public class AuctionBoardUI : MonoBehaviour
 
         // 閉じるボタンがあればクリック時に閉じる
         if (closeButton != null) closeButton.onClick.AddListener(Close);
+
+        // 右の紙のボタンで、選んでいるお宝を出品リストに入れたり外したりする
+        if (detailAddButton != null)
+        {
+            detailAddButton.onClick.AddListener(() =>
+            {
+                if (selectedCard != null) ToggleListed(selectedCard);
+            });
+        }
     }
 
     /// <summary>
@@ -113,6 +167,7 @@ public class AuctionBoardUI : MonoBehaviour
             yield return MoveCamera(cam, cameraPoint.position, cameraPoint.rotation);
         }
 
+        RefreshBoard();
         boardPanel.SetActive(true);
         yield return Fade(0f, 1f);
 
@@ -192,6 +247,110 @@ public class AuctionBoardUI : MonoBehaviour
             yield return null;
         }
         panelGroup.alpha = to;
+    }
+
+    /// <summary>
+    /// 持ち物のお宝をカードにして並べ直す
+    /// </summary>
+    private void RefreshBoard()
+    {
+        if (cardParent == null || cardPrefab == null) return;
+
+        foreach (Transform child in cardParent)
+        {
+            Destroy(child.gameObject);
+        }
+        cards.Clear();
+        selectedCard = null;
+
+        List<PurchasedItem> items = InventoryManager.Instance != null ? InventoryManager.Instance.items : new List<PurchasedItem>();
+
+        // 持ち物からなくなったお宝は、出品リストからも外す
+        listedItems.RemoveAll(item => !items.Contains(item));
+
+        for (int i = 0; i < items.Count; i++)
+        {
+            BoardCard card = Instantiate(cardPrefab, cardParent);
+            card.Setup(items[i], i + 1, GetIcon(items[i].itemName), listedItems.Contains(items[i]), SelectCard, ToggleListed);
+            cards.Add(card);
+        }
+
+        if (emptyText != null) emptyText.SetActive(items.Count == 0);
+        if (detailArea != null) detailArea.SetActive(items.Count > 0);
+
+        if (cards.Count > 0) SelectCard(cards[0]);
+        UpdateHeader();
+    }
+
+    /// <summary>
+    /// カードを選んで、右の紙に詳しい情報を出す
+    /// </summary>
+    private void SelectCard(BoardCard card)
+    {
+        if (selectedCard != null) selectedCard.SetSelected(false);
+        selectedCard = card;
+        if (selectedCard != null) selectedCard.SetSelected(true);
+        UpdateDetail();
+    }
+
+    /// <summary>
+    /// お宝を出品リストに入れたり外したりする
+    /// </summary>
+    private void ToggleListed(BoardCard card)
+    {
+        if (card == null || card.Item == null) return;
+
+        bool listed = listedItems.Contains(card.Item);
+        if (listed) listedItems.Remove(card.Item);
+        else listedItems.Add(card.Item);
+
+        card.SetListed(!listed);
+        UpdateHeader();
+        if (card == selectedCard) UpdateDetail();
+    }
+
+    /// <summary>
+    /// 上のバー（所持金と出品リストの数）を書き直す
+    /// </summary>
+    private void UpdateHeader()
+    {
+        if (moneyText != null && MonayManager.Instance != null) moneyText.text = $"{MonayManager.Instance.CurrentMonay:N0}$";
+        if (listCountText != null) listCountText.text = listedItems.Count.ToString();
+    }
+
+    /// <summary>
+    /// 右の紙（選んでいるお宝の詳しい情報）を書き直す
+    /// </summary>
+    private void UpdateDetail()
+    {
+        if (selectedCard == null || selectedCard.Item == null) return;
+        PurchasedItem item = selectedCard.Item;
+
+        if (detailIcon != null)
+        {
+            Sprite icon = GetIcon(item.itemName);
+            detailIcon.sprite = icon;
+            detailIcon.enabled = icon != null;
+            detailIcon.preserveAspect = true;
+        }
+        if (detailNameText != null) detailNameText.text = item.itemName.ToString();
+        if (detailMemoText != null) detailMemoText.text = BoardCard.MakeMemo(item);
+        if (detailPriceText != null) detailPriceText.text = $"{item.paidPrice:N0}$";
+        if (detailFeeText != null) detailFeeText.text = $"{Mathf.RoundToInt(item.paidPrice * feeRate):N0}$";
+        if (detailAddButtonText != null) detailAddButtonText.text = listedItems.Contains(item) ? "出品リストから外す" : "出品リストに貼る";
+    }
+
+    /// <summary>
+    /// お宝の種類から絵を探す
+    /// </summary>
+    private Sprite GetIcon(ItemData.ItemCategory category)
+    {
+        if (itemIcons == null) return null;
+        foreach (ItemIcon pair in itemIcons)
+        {
+            if (pair != null && pair.category == category) return pair.icon;
+        }
+        return null;
     }
 
     /// <summary>
