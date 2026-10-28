@@ -154,7 +154,7 @@ GameObject:
   - component: {fileID: 9042500700677051223}
   - component: {fileID: 5052163513883801125}
   m_Layer: 0
-  m_Name: pot1
+  m_Name: Oldpot
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

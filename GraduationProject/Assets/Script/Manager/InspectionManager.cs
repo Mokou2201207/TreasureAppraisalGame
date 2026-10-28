@@ -287,6 +287,9 @@ public class InspectionManager : MonoBehaviour
             inspectController.SetZoomSettings(zoomSpeed, minScaleMultiplier, maxScaleMultiplier, enableZoom);
             inspectController.StartInspect();
 
+            // カウンターでは隠している傷やミッションの見た目を、鑑定台のお宝だけに出す
+            ShowTreasureVisuals(currentInspectingItem);
+
             // ItemDataのテキスト情報をUIに表示
             ItemData itemData = itemPrefab != null ? itemPrefab.GetComponent<ItemData>() : null;
             if (itemData == null && itemPrefab != null) itemData = itemPrefab.GetComponentInParent<ItemData>();
@@ -687,6 +690,22 @@ public class InspectionManager : MonoBehaviour
             checkedMission1 = mission1CircleMark != null && mission1CircleMark.activeSelf,
             checkedMission2 = mission2CircleMark != null && mission2CircleMark.activeSelf,
         };
+    }
+
+    /// <summary>
+    /// 鑑定台のお宝に、フラグどおりの傷やミッションの見た目を出す
+    /// </summary>
+    private void ShowTreasureVisuals(GameObject item)
+    {
+        if (item == null) return;
+
+        ItemData data = item.GetComponent<ItemData>();
+        if (data == null) data = item.GetComponentInChildren<ItemData>();
+        if (data == null) return;
+
+        if (data.damagedVisual != null) data.damagedVisual.SetActive(data.isDamaged);
+        if (data.mission1Visual != null) data.mission1Visual.SetActive(data.isAppraisalMission1);
+        if (data.mission2Visual != null) data.mission2Visual.SetActive(data.isAppraisalMission2);
     }
 
     /// <summary>

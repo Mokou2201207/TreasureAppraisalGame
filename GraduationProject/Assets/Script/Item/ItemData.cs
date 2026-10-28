@@ -16,6 +16,7 @@ public class ItemData : MonoBehaviour
     {
         古い壺,
         ヨーロッパ風の壺,
+        海から引き上げられた壺,
     }
 
     [Header("アイテムの名称")]
@@ -129,6 +130,27 @@ public class ItemData : MonoBehaviour
                 isCustomerDescriptionPrice2 = -3000f;
                 string europePotPriceText5 = highestPrice.ToString("N0") + "$";
                 break;
+
+            case ItemCategory.海から引き上げられた壺:
+                itemDescription = "海の底から網にかかって引き上げられたという、灰白色の古い壺。\n片側だけにフジツボやさびのしみが集まり、砂に埋もれていた跡が見てとれる。";
+                appraisalMission1 = "ヒトデがくっついているか";
+                appraisalMission2 = "底に新しい窯の印がある";
+                //最高金額
+                highestPrice = 6000f;
+                string seashorePotPriceText1 = highestPrice.ToString("N0") + "$";
+                //傷つきのマイナス値段
+                damagedPrice = -300f;
+                string seashorePotPriceText2 = highestPrice.ToString("N0") + "$";
+                //情報が違う場合のマイナス値段
+                customerDescriptionPrice = -500f;
+                string seashorePotPriceText3 = highestPrice.ToString("N0") + "$";
+                //鑑定オリジナルミッションの値段
+                isCustomerDescriptionPrice1 = -200f;
+                string seashorePotPriceText4 = highestPrice.ToString("N0") + "$";
+                //鑑定オリジナルミッションの値段
+                isCustomerDescriptionPrice2 = -3000f;
+                string seashorePotPriceText5 = highestPrice.ToString("N0") + "$";
+                break;
         }
             ApplyRandomCustomerDescription();
 
@@ -196,6 +218,30 @@ public class ItemData : MonoBehaviour
                     "お城で花を生けていた壺で、つぼみは一つも描いてないんですよ",
                 };
                 break;
+
+            case ItemCategory.海から引き上げられた壺:
+                correctTexts = new string[]
+                {
+                    "漁師の父の網に、ある朝ひっかかってきた壺なんです",
+                    "海の底からそのまま上がってきたので、フジツボがついたままなんですよ",
+                    "元は白っぽい焼きものだったみたいで、今は灰色っぽくくすんでます",
+                    "たぶん、半分だけ砂に埋まってたんじゃないかって言われました",
+                    "フジツボやさびが入ってるけど買い取ってくれますか？？",
+                    "網を上げたら魚にまざって入ってて、みんなでびっくりしました",
+
+                };
+                incorrectTexts = new string[]
+                {
+                    "この壺海から引き上げられたらしいですよ！夜になると光るとか！",
+                    "見てくれよ！全面にフジツボがついてるんだ！海の底で長い間眠ってたんだろうなぁ",
+                    "なんか浜辺に流れて来ていました。",
+                    "山の中の古い井戸の底から、くみ上げた壺です",
+                    "全体が真っ赤な、つやつやの壺なんですよ",
+                    "海の底から引き上げた壺で、緑色のしみが片側に集まってるんですよ",
+                    "海の底で、ずっと砂に全部うまっていたらしいです",
+                    "網にかかった古い壺で、片側にフジツボがついてて……あ、そのフジツボ、見栄えがいいように私がつけたんです",
+                };
+                break;
         }
 
         if (correctTexts == null || incorrectTexts == null) return;
@@ -229,7 +275,7 @@ public class ItemData : MonoBehaviour
 
         isRandomized = true;
 
-        ApplyVisuals();
+        HideVisuals();
         ApplyRandomCustomerDescription();
     }
 
@@ -241,5 +287,15 @@ public class ItemData : MonoBehaviour
         if (damagedVisual != null) damagedVisual.SetActive(isDamaged);
         if (mission1Visual != null) mission1Visual.SetActive(isAppraisalMission1);
         if (mission2Visual != null) mission2Visual.SetActive(isAppraisalMission2);
+    }
+
+    /// <summary>
+    /// カウンターに置いたときは、傷やミッションの見た目を隠しておく
+    /// </summary>
+    private void HideVisuals()
+    {
+        if (damagedVisual != null) damagedVisual.SetActive(false);
+        if (mission1Visual != null) mission1Visual.SetActive(false);
+        if (mission2Visual != null) mission2Visual.SetActive(false);
     }
 }
