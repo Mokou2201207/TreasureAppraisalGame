@@ -131,6 +131,11 @@ public class InspectionManager : MonoBehaviour
     private Vector3 savedCameraPos;
     private Quaternion savedCameraRot;
     private Coroutine cameraMoveCoroutine;
+    // プレイヤーから見たカメラの位置と向き（元に戻すときに使う）
+    private Vector3 savedCameraLocalPos;
+    private Quaternion savedCameraLocalRot;
+    // カメラを元に戻している途中かどうか（戻り切るまでプレイヤーを動かさない）
+    private bool isReturningCamera = false;
 
     public bool IsInspecting => isInspecting;
 
@@ -193,6 +198,7 @@ public class InspectionManager : MonoBehaviour
     {
         if (isInspecting) return;
         isInspecting = true;
+        isReturningCamera = false;
         lastInspectedTarget = itemPrefab;
         inspectionStartFrame = Time.frameCount;
 
@@ -472,6 +478,8 @@ public class InspectionManager : MonoBehaviour
         {
             savedCameraPos = mainCamera.transform.position;
             savedCameraRot = mainCamera.transform.rotation;
+            savedCameraLocalPos = mainCamera.transform.localPosition;
+            savedCameraLocalRot = mainCamera.transform.localRotation;
         }
 
         PlayTurnSE(turnSE);
@@ -550,13 +558,38 @@ public class InspectionManager : MonoBehaviour
 
         if (smoothCameraMove)
         {
-            cameraMoveCoroutine = StartCoroutine(AnimateCamera(savedCameraPos, savedCameraRot));
+            isReturningCamera = true;
+            cameraMoveCoroutine = StartCoroutine(ReturnCameraRoutine());
         }
         else
         {
-            mainCamera.transform.position = savedCameraPos;
-            mainCamera.transform.rotation = savedCameraRot;
+            mainCamera.transform.localPosition = savedCameraLocalPos;
+            mainCamera.transform.localRotation = savedCameraLocalRot;
         }
+    }
+
+    /// <summary>
+    /// プレイヤーから見た元の位置へカメラを戻し、戻り切ってからプレイヤーを動けるようにする
+    /// </summary>
+    private IEnumerator ReturnCameraRoutine()
+    {
+        Transform cam = mainCamera.transform;
+        Vector3 startLocalPos = cam.localPosition;
+        Quaternion startLocalRot = cam.localRotation;
+        float t = 0f;
+
+        while (t < 1.0f)
+        {
+            t += Time.deltaTime * cameraMoveSpeed;
+            cam.localPosition = Vector3.Lerp(startLocalPos, savedCameraLocalPos, t);
+            cam.localRotation = Quaternion.Slerp(startLocalRot, savedCameraLocalRot, t);
+            yield return null;
+        }
+        cam.localPosition = savedCameraLocalPos;
+        cam.localRotation = savedCameraLocalRot;
+
+        isReturningCamera = false;
+        SetPlayerControlsActive(true);
     }
 
     /// <summary>
@@ -604,6 +637,9 @@ public class InspectionManager : MonoBehaviour
     /// </summary>
     private void SetPlayerControlsActive(bool isActive)
     {
+        // カメラを戻している途中は、戻り切るまで動けるようにしない
+        if (isActive && isReturningCamera) return;
+
         if (playerMoveScript != null) playerMoveScript.enabled = isActive;
         if (mouseLookScript != null) mouseLookScript.enabled = isActive;
         if (playerLookScript != null) playerLookScript.enabled = isActive;
