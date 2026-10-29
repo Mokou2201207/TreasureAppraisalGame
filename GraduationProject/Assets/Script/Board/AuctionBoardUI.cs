@@ -48,6 +48,25 @@ public class AuctionBoardUI : MonoBehaviour
     [Header("出品手数料（買値に対する割合）")]
     [SerializeField, Range(0f, 1f)] private float feeRate = 0.05f;
 
+    [Header("出品申込書")]
+    [Tooltip("上のバーの「出品リスト」ボタン（押すと申込書が出る）")]
+    [SerializeField] private Button listButton;
+    [SerializeField] private GameObject confirmPanel;
+    [Tooltip("申込書の行を並べる場所")]
+    [SerializeField] private Transform confirmRowParent;
+    [SerializeField] private ConfirmRow confirmRowPrefab;
+    [SerializeField] private Text confirmTotalText;
+    [SerializeField] private Text confirmFeeText;
+    [Tooltip("「結果は次の日の朝に…」やお金が足りないときの文")]
+    [SerializeField] private Text confirmMessageText;
+    [Tooltip("「この内容で貼り出す」ボタン")]
+    [SerializeField] private Button submitButton;
+    [Tooltip("「もどる」ボタン")]
+    [SerializeField] private Button backButton;
+    [Tooltip("貼り出したときのSE（紙の音など）")]
+    [SerializeField] private AudioClip submitSE;
+    [SerializeField, Range(0f, 1f)] private float submitSEVolume = 1f;
+
     /// <summary>
     /// お宝の種類と絵の組み合わせ
     /// </summary>
@@ -83,6 +102,10 @@ public class AuctionBoardUI : MonoBehaviour
     // 出品リストに入れたお宝の一覧（次の手順の申込書で使う）
     public IReadOnlyList<PurchasedItem> ListedItems => listedItems;
 
+    // 申込書が開いているかどうか
+    private bool IsConfirmOpen => confirmPanel != null && confirmPanel.activeSelf;
+    private AudioSource seSource;
+
     // 掲示板が開いているか（カメラが動いている途中も開いている扱いにする）
     public bool IsOpen => isMoving || (boardPanel != null && boardPanel.activeSelf);
     // Escをほかのスクリプトに使わせたくないとき
@@ -108,6 +131,12 @@ public class AuctionBoardUI : MonoBehaviour
         // 閉じるボタンがあればクリック時に閉じる
         if (closeButton != null) closeButton.onClick.AddListener(Close);
 
+        // 申込書は最初は閉じておく
+        if (confirmPanel != null) confirmPanel.SetActive(false);
+        if (listButton != null) listButton.onClick.AddListener(OpenConfirm);
+        if (submitButton != null) submitButton.onClick.AddListener(Submit);
+        if (backButton != null) backButton.onClick.AddListener(CloseConfirm);
+
         // 右の紙のボタンで、選んでいるお宝を出品リストに入れたり外したりする
         if (detailAddButton != null)
         {
@@ -126,7 +155,9 @@ public class AuctionBoardUI : MonoBehaviour
         // Escで閉じる
         if (Input.GetKeyDown(KeyCode.Escape) && IsOpen && !isMoving)
         {
-            Close();
+            // 申込書が開いているときは、申込書だけ閉じる
+            if (IsConfirmOpen) CloseConfirm();
+            else Close();
         }
     }
 
@@ -184,6 +215,7 @@ public class AuctionBoardUI : MonoBehaviour
     private IEnumerator CloseRoutine()
     {
         isMoving = true;
+        CloseConfirm();
 
         //カーソルのロックを解除して表示させる
         Cursor.lockState = CursorLockMode.Locked;
@@ -275,8 +307,18 @@ public class AuctionBoardUI : MonoBehaviour
             cards.Add(card);
         }
 
-        if (emptyText != null) emptyText.SetActive(items.Count == 0);
-        if (detailArea != null) detailArea.SetActive(items.Count > 0);
+        // すでに出品中のお宝は、うしろに「出品」のはんこ付きで並べる（選べない）
+        List<PurchasedItem> onAuction = AuctionManager.Instance != null ? AuctionManager.Instance.onAuction : new List<PurchasedItem>();
+        for (int i = 0; i < onAuction.Count; i++)
+        {
+            BoardCard card = Instantiate(cardPrefab, cardParent);
+            card.Setup(onAuction[i], items.Count + i + 1, GetIcon(onAuction[i].itemName), true, SelectCard, ToggleListed);
+            card.SetLocked(true);
+            cards.Add(card);
+        }
+
+        if (emptyText != null) emptyText.SetActive(cards.Count == 0);
+        if (detailArea != null) detailArea.SetActive(cards.Count > 0);
 
         if (cards.Count > 0) SelectCard(cards[0]);
         UpdateHeader();
@@ -298,7 +340,7 @@ public class AuctionBoardUI : MonoBehaviour
     /// </summary>
     private void ToggleListed(BoardCard card)
     {
-        if (card == null || card.Item == null) return;
+        if (card == null || card.Item == null || card.IsLocked) return;
 
         bool listed = listedItems.Contains(card.Item);
         if (listed) listedItems.Remove(card.Item);
@@ -337,7 +379,140 @@ public class AuctionBoardUI : MonoBehaviour
         if (detailMemoText != null) detailMemoText.text = BoardCard.MakeMemo(item);
         if (detailPriceText != null) detailPriceText.text = $"{item.paidPrice:N0}$";
         if (detailFeeText != null) detailFeeText.text = $"{Mathf.RoundToInt(item.paidPrice * feeRate):N0}$";
+        if (selectedCard.IsLocked)
+        {
+            if (detailAddButtonText != null) detailAddButtonText.text = "出品中";
+            if (detailAddButton != null) detailAddButton.interactable = false;
+            return;
+        }
+        if (detailAddButton != null) detailAddButton.interactable = true;
         if (detailAddButtonText != null) detailAddButtonText.text = listedItems.Contains(item) ? "出品リストから外す" : "出品リストに貼る";
+    }
+
+    /// <summary>
+    /// 出品申込書を開く
+    /// </summary>
+    private void OpenConfirm()
+    {
+        if (confirmPanel == null || isMoving) return;
+        confirmPanel.SetActive(true);
+        RefreshConfirm();
+    }
+
+    /// <summary>
+    /// 出品申込書を閉じる
+    /// </summary>
+    private void CloseConfirm()
+    {
+        if (confirmPanel != null) confirmPanel.SetActive(false);
+    }
+
+    /// <summary>
+    /// 申込書の行と合計を書き直す
+    /// </summary>
+    private void RefreshConfirm()
+    {
+        if (confirmRowParent != null)
+        {
+            foreach (Transform child in confirmRowParent)
+            {
+                Destroy(child.gameObject);
+            }
+            if (confirmRowPrefab != null)
+            {
+                foreach (PurchasedItem item in listedItems)
+                {
+                    ConfirmRow row = Instantiate(confirmRowPrefab, confirmRowParent);
+                    row.Setup(item, GetIcon(item.itemName), RemoveFromConfirm);
+                }
+            }
+        }
+
+        int total = 0;
+        foreach (PurchasedItem item in listedItems) total += item.paidPrice;
+        int fee = GetTotalFee();
+
+        if (confirmTotalText != null) confirmTotalText.text = $"{total:N0}$";
+        if (confirmFeeText != null) confirmFeeText.text = $"{fee:N0}$";
+
+        bool hasItems = listedItems.Count > 0;
+        bool enoughMoney = MonayManager.Instance == null || MonayManager.Instance.CurrentMonay >= fee;
+
+        if (confirmMessageText != null)
+        {
+            if (!hasItems) confirmMessageText.text = "出品するお宝がまだ選ばれていません";
+            else if (!enoughMoney) confirmMessageText.text = "手数料を払うお金が足りません";
+            else confirmMessageText.text = "結果は「次の日の朝」に、この掲示板へ貼り出されます";
+        }
+        if (submitButton != null) submitButton.interactable = hasItems && enoughMoney;
+    }
+
+    /// <summary>
+    /// 申込書の「－」ボタンで、お宝を出品リストから外す
+    /// </summary>
+    private void RemoveFromConfirm(PurchasedItem item)
+    {
+        listedItems.Remove(item);
+        foreach (BoardCard card in cards)
+        {
+            if (card.Item == item) card.SetListed(false);
+        }
+        UpdateHeader();
+        UpdateDetail();
+        RefreshConfirm();
+    }
+
+    /// <summary>
+    /// 出品リストのお宝の手数料の合計
+    /// </summary>
+    private int GetTotalFee()
+    {
+        int fee = 0;
+        foreach (PurchasedItem item in listedItems) fee += Mathf.RoundToInt(item.paidPrice * feeRate);
+        return fee;
+    }
+
+    /// <summary>
+    /// 「この内容で貼り出す」：手数料を払い、お宝を持ち物から出品中へ移す
+    /// </summary>
+    private void Submit()
+    {
+        if (listedItems.Count == 0) return;
+
+        int fee = GetTotalFee();
+        if (MonayManager.Instance != null)
+        {
+            if (MonayManager.Instance.CurrentMonay < fee) return;
+            MonayManager.Instance.SpendMonay(fee);
+        }
+
+        if (AuctionManager.Instance != null) AuctionManager.Instance.AddListings(listedItems);
+        else Debug.LogWarning("[AuctionBoardUI] AuctionManager がシーンにありません。GameData に付けてください。");
+
+        if (InventoryManager.Instance != null)
+        {
+            foreach (PurchasedItem item in listedItems) InventoryManager.Instance.items.Remove(item);
+        }
+        listedItems.Clear();
+
+        PlaySubmitSE();
+        CloseConfirm();
+        RefreshBoard();
+    }
+
+    /// <summary>
+    /// 貼り出したときのSEを鳴らす
+    /// </summary>
+    private void PlaySubmitSE()
+    {
+        if (submitSE == null) return;
+        if (seSource == null)
+        {
+            seSource = gameObject.AddComponent<AudioSource>();
+            seSource.playOnAwake = false;
+            seSource.spatialBlend = 0f;
+        }
+        seSource.PlayOneShot(submitSE, submitSEVolume);
     }
 
     /// <summary>

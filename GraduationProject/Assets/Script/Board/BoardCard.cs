@@ -30,6 +30,8 @@ public class BoardCard : MonoBehaviour
 
     // このカードのお宝
     public PurchasedItem Item { get; private set; }
+    // すでに出品中で、もう選べないカードかどうか
+    public bool IsLocked { get; private set; }
 
     private Action<BoardCard> onSelect;
     private Action<BoardCard> onToggle;
@@ -65,8 +67,19 @@ public class BoardCard : MonoBehaviour
             addButton.onClick.AddListener(() => onToggle?.Invoke(this));
         }
 
+        SetLocked(false);
         SetListed(listed);
         SetSelected(false);
+    }
+
+    /// <summary>
+    /// すでに出品中のお宝は、ボタンを隠して「出品」のはんこだけ見せる
+    /// </summary>
+    public void SetLocked(bool locked)
+    {
+        IsLocked = locked;
+        if (addButton != null) addButton.gameObject.SetActive(!locked);
+        if (locked && listedStamp != null) listedStamp.SetActive(true);
     }
 
     /// <summary>
