@@ -286,6 +286,11 @@ PrefabInstance:
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
       objectReference: {fileID: 975813546}
+    - target: {fileID: 2253064161412253704, guid: 799aad07603a4ce4a973afa4f068e98b,
+        type: 3}
+      propertyPath: m_FontData.m_FontSize
+      value: 30
+      objectReference: {fileID: 0}
     - target: {fileID: 2278694480489338822, guid: 799aad07603a4ce4a973afa4f068e98b,
         type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
@@ -443,6 +448,16 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5120172742525010897, guid: 799aad07603a4ce4a973afa4f068e98b,
         type: 3}
+      propertyPath: unpinSE
+      value: 
+      objectReference: {fileID: 8300000, guid: 71c8ba418d6dba049b1fe12fbaa1f15e, type: 3}
+    - target: {fileID: 5120172742525010897, guid: 799aad07603a4ce4a973afa4f068e98b,
+        type: 3}
+      propertyPath: submitSE
+      value: 
+      objectReference: {fileID: 8300000, guid: 7eee6403e2aa0c9459a48440decb1a1c, type: 3}
+    - target: {fileID: 5120172742525010897, guid: 799aad07603a4ce4a973afa4f068e98b,
+        type: 3}
       propertyPath: backButton
       value: 
       objectReference: {fileID: 1626929620}
@@ -489,9 +504,51 @@ PrefabInstance:
       objectReference: {fileID: 650377071}
     - target: {fileID: 5120172742525010897, guid: 799aad07603a4ce4a973afa4f068e98b,
         type: 3}
+      propertyPath: pinSE.Array.size
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5120172742525010897, guid: 799aad07603a4ce4a973afa4f068e98b,
+        type: 3}
       propertyPath: confirmMessageText
       value: 
       objectReference: {fileID: 1961241606}
+    - target: {fileID: 5120172742525010897, guid: 799aad07603a4ce4a973afa4f068e98b,
+        type: 3}
+      propertyPath: pinSE.Array.data[0]
+      value: 
+      objectReference: {fileID: 8300000, guid: 155bc44dbbc0f0644a283659a7ac07dd, type: 3}
+    - target: {fileID: 5120172742525010897, guid: 799aad07603a4ce4a973afa4f068e98b,
+        type: 3}
+      propertyPath: pinSE.Array.data[1]
+      value: 
+      objectReference: {fileID: 8300000, guid: 50d5af2cbdcb4704fb69dea1a3224500, type: 3}
+    - target: {fileID: 5120172742525010897, guid: 799aad07603a4ce4a973afa4f068e98b,
+        type: 3}
+      propertyPath: pinSE.Array.data[2]
+      value: 
+      objectReference: {fileID: 8300000, guid: bc79156ae9382f7498252f1603231aee, type: 3}
+    - target: {fileID: 5120172742525010897, guid: 799aad07603a4ce4a973afa4f068e98b,
+        type: 3}
+      propertyPath: itemIcons.Array.size
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5120172742525010897, guid: 799aad07603a4ce4a973afa4f068e98b,
+        type: 3}
+      propertyPath: itemIcons.Array.data[2].icon
+      value: 
+      objectReference: {fileID: 21300000, guid: e1fd937f0381ae84483c6f99eb57a73a,
+        type: 3}
+    - target: {fileID: 5120172742525010897, guid: 799aad07603a4ce4a973afa4f068e98b,
+        type: 3}
+      propertyPath: itemIcons.Array.data[3].icon
+      value: 
+      objectReference: {fileID: 21300000, guid: e12a7bacc4d205d49ad0576c0d70a302,
+        type: 3}
+    - target: {fileID: 5120172742525010897, guid: 799aad07603a4ce4a973afa4f068e98b,
+        type: 3}
+      propertyPath: itemIcons.Array.data[3].category
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 5510934861536226893, guid: 799aad07603a4ce4a973afa4f068e98b,
         type: 3}
       propertyPath: m_IsActive
@@ -516,6 +573,26 @@ PrefabInstance:
         type: 3}
       propertyPath: m_AnchoredPosition.y
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6024533500797504630, guid: 799aad07603a4ce4a973afa4f068e98b,
+        type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 354.726
+      objectReference: {fileID: 0}
+    - target: {fileID: 6024533500797504630, guid: 799aad07603a4ce4a973afa4f068e98b,
+        type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 47.771
+      objectReference: {fileID: 0}
+    - target: {fileID: 6024533500797504630, guid: 799aad07603a4ce4a973afa4f068e98b,
+        type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 636.28485
+      objectReference: {fileID: 0}
+    - target: {fileID: 6024533500797504630, guid: 799aad07603a4ce4a973afa4f068e98b,
+        type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 36.876
       objectReference: {fileID: 0}
     - target: {fileID: 6459355640735901389, guid: 799aad07603a4ce4a973afa4f068e98b,
         type: 3}
@@ -632,6 +709,26 @@ PrefabInstance:
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
       objectReference: {fileID: 975813546}
+    - target: {fileID: 8471537578958065550, guid: 799aad07603a4ce4a973afa4f068e98b,
+        type: 3}
+      propertyPath: outlineWidth
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 8471537578958065550, guid: 799aad07603a4ce4a973afa4f068e98b,
+        type: 3}
+      propertyPath: outlineColor.b
+      value: 0.0494054
+      objectReference: {fileID: 0}
+    - target: {fileID: 8471537578958065550, guid: 799aad07603a4ce4a973afa4f068e98b,
+        type: 3}
+      propertyPath: outlineColor.g
+      value: 0.96981126
+      objectReference: {fileID: 0}
+    - target: {fileID: 8471537578958065550, guid: 799aad07603a4ce4a973afa4f068e98b,
+        type: 3}
+      propertyPath: outlineColor.r
+      value: 0.15493235
+      objectReference: {fileID: 0}
     - target: {fileID: 8481701973286322691, guid: 799aad07603a4ce4a973afa4f068e98b,
         type: 3}
       propertyPath: m_AnchorMax.y
@@ -1592,6 +1689,11 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 3230864217296038711, guid: 9b8c3f611156a5d43ba6537c9ec45d98,
+        type: 3}
+      propertyPath: m_Volume
+      value: 0.508
+      objectReference: {fileID: 0}
     - target: {fileID: 5143168472432800275, guid: 9b8c3f611156a5d43ba6537c9ec45d98,
         type: 3}
       propertyPath: isPowerOn

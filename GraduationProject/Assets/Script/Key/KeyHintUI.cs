@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 
@@ -24,18 +25,35 @@ public class KeyHintUI : MonoBehaviour
     [Header("カーソルの先を調べる距離（PlayerLookが見つからないときに使う）")]
     [SerializeField] private float lookDistance = 2f;
 
+    [Header("キーの表示が出ている物を光らせる（Quick Outline）")]
+    [SerializeField] private bool useOutline = true;
+    [SerializeField] private Color outlineColor = new Color(1f, 0.85f, 0.35f);
+    [SerializeField, Range(0f, 10f)] private float outlineWidth = 5f;
+    [SerializeField] private Outline.Mode outlineMode = Outline.Mode.OutlineVisible;
+
     // 今表示している状態
     private string currentState = "";
     private InventoryUI inventoryUI;
     private PlayerLook playerLook;
 
+    // 今光らせている物
+    private GameObject outlineTarget;
+    private Outline currentOutline;
+    // Read/Writeが無効で光らせられないと、もう知らせた物
+    private readonly HashSet<GameObject> warnedTargets = new HashSet<GameObject>();
+
     // PlayerLookのRayの長さ（rayDistance）を読み取るための情報
     private static readonly FieldInfo rayDistanceField =
         typeof(PlayerLook).GetField("rayDistance", BindingFlags.NonPublic | BindingFlags.Instance);
 
+    // Outlineの見え方をすぐ反映するための処理（Quick Outline の中にある）
+    private static readonly MethodInfo updateOutlineMethod =
+        typeof(Outline).GetMethod("UpdateMaterialProperties", BindingFlags.NonPublic | BindingFlags.Instance);
+
     private void Update()
     {
-        string state = GetState();
+        string state = GetState(out GameObject target);
+        SetOutlineTarget(useOutline ? target : null);
 
         // 状態が変わったときだけ、表示を作り直す
         if (state == currentState) return;
@@ -46,8 +64,10 @@ public class KeyHintUI : MonoBehaviour
     /// <summary>
     /// 今どの状態かを調べる（上にあるものほど優先）
     /// </summary>
-    private string GetState()
+    private string GetState(out GameObject target)
     {
+        target = null;
+
         if (inventoryUI == null) inventoryUI = FindObjectOfType<InventoryUI>();
         if (inventoryUI != null && inventoryUI.IsOpen) return "Inventory";
         if (AuctionBoardUI.Instance != null && AuctionBoardUI.Instance.IsOpen) return "BoardOpen";
@@ -68,25 +88,123 @@ public class KeyHintUI : MonoBehaviour
         MoveWaypoint customer = hit.collider.GetComponentInParent<MoveWaypoint>();
         if (customer != null)
         {
-            return (customer.queuePositionNumber == 0 && !customer.isMoving) ? "Customer" : "None";
+            // 歩いている途中で一瞬立ち止まっただけのときは出さない（カウンターに着いたときだけ）
+            if (customer.queuePositionNumber == 0 && !customer.isMoving && customer.isStopped)
+            {
+                target = customer.gameObject;
+                return "Customer";
+            }
+            return "None";
         }
 
-        if (hit.collider.GetComponentInParent<ItemData>() != null) return "Item";
+        ItemData item = hit.collider.GetComponentInParent<ItemData>();
+        if (item != null)
+        {
+            target = item.gameObject;
+            return "Item";
+        }
 
         // ラジオは操作できる距離の中にあるときだけ出す
         RadioMusic radio = hit.collider.GetComponentInParent<RadioMusic>();
         if (radio != null)
         {
             if (hit.distance > radio.InteractDistance) return "None";
+            target = radio.gameObject;
             return radio.IsPowerOn ? "RadioOn" : "RadioOff";
         }
 
-        if (hit.collider.GetComponentInParent<SceneTeleporter>() != null) return "Car";
+        SceneTeleporter car = hit.collider.GetComponentInParent<SceneTeleporter>();
+        if (car != null)
+        {
+            target = car.gameObject;
+            return "Car";
+        }
 
         // PlayerLookと同じく、レイヤーで掲示板かどうかを見分ける
-        if (hit.collider.gameObject.layer == LayerMask.NameToLayer("AuctionBoard")) return "Board";
+        if (hit.collider.gameObject.layer == LayerMask.NameToLayer("AuctionBoard"))
+        {
+            target = GetLayerRoot(hit.collider.transform);
+            return "Board";
+        }
 
         return "None";
+    }
+
+    /// <summary>
+    /// 同じレイヤーが続くところまで親をたどって、物全体を返す（掲示板の親など）
+    /// </summary>
+    private GameObject GetLayerRoot(Transform t)
+    {
+        int layer = t.gameObject.layer;
+        while (t.parent != null && t.parent.gameObject.layer == layer)
+        {
+            t = t.parent;
+        }
+        return t.gameObject;
+    }
+
+    /// <summary>
+    /// 光らせる物を切りかえる（前の物は消して、新しい物に付ける）
+    /// </summary>
+    private void SetOutlineTarget(GameObject target)
+    {
+        if (target == outlineTarget) return;
+
+        if (currentOutline != null) currentOutline.enabled = false;
+        outlineTarget = target;
+        currentOutline = null;
+
+        if (target == null) return;
+
+        // 付いていなければ、そのときに付ける
+        currentOutline = target.GetComponent<Outline>();
+        if (currentOutline == null)
+        {
+            // 形のデータが読めないモデルに付けるとエラーで止まるので、付けずに知らせる
+            if (!CanOutline(target)) return;
+            currentOutline = target.AddComponent<Outline>();
+        }
+
+        currentOutline.OutlineMode = outlineMode;
+        currentOutline.OutlineColor = outlineColor;
+        currentOutline.OutlineWidth = outlineWidth;
+        currentOutline.enabled = true;
+
+        // 付けた直後の1フレームだけ、カウンターを貫通して光るのを防ぐ
+        if (updateOutlineMethod != null) updateOutlineMethod.Invoke(currentOutline, null);
+    }
+
+    private void OnDisable()
+    {
+        SetOutlineTarget(null);
+    }
+
+    /// <summary>
+    /// 光らせる物のモデルが、全部 Read/Write 有効になっているか調べる
+    /// </summary>
+    private bool CanOutline(GameObject target)
+    {
+        foreach (MeshFilter mf in target.GetComponentsInChildren<MeshFilter>())
+        {
+            if (mf.sharedMesh != null && !mf.sharedMesh.isReadable) return WarnNotReadable(target, mf.sharedMesh);
+        }
+        foreach (SkinnedMeshRenderer sr in target.GetComponentsInChildren<SkinnedMeshRenderer>())
+        {
+            if (sr.sharedMesh != null && !sr.sharedMesh.isReadable) return WarnNotReadable(target, sr.sharedMesh);
+        }
+        return true;
+    }
+
+    /// <summary>
+    /// Read/Writeが無効なモデルを、1つにつき1回だけ知らせる
+    /// </summary>
+    private bool WarnNotReadable(GameObject target, Mesh mesh)
+    {
+        if (warnedTargets.Add(target))
+        {
+            Debug.LogWarning($"[KeyHintUI] {target.name} のモデル「{mesh.name}」は Read/Write が無効なので光らせません。モデルの Import Settings で Read/Write Enabled にチェックを入れてください。");
+        }
+        return false;
     }
 
     /// <summary>

@@ -66,6 +66,11 @@ public class AuctionBoardUI : MonoBehaviour
     [Tooltip("貼り出したときのSE（紙の音など）")]
     [SerializeField] private AudioClip submitSE;
     [SerializeField, Range(0f, 1f)] private float submitSEVolume = 1f;
+    [Tooltip("出品リストに貼ったときの画鋲の音（何個か入れると毎回ちがう音になる）")]
+    [SerializeField] private AudioClip[] pinSE;
+    [Tooltip("出品リストから外したときの画鋲を抜く音")]
+    [SerializeField] private AudioClip unpinSE;
+    [SerializeField, Range(0f, 1f)] private float pinSEVolume = 1f;
 
     /// <summary>
     /// お宝の種類と絵の組み合わせ
@@ -347,6 +352,8 @@ public class AuctionBoardUI : MonoBehaviour
         else listedItems.Add(card.Item);
 
         card.SetListed(!listed);
+        if (listed) PlaySE(unpinSE, pinSEVolume);
+        else if (pinSE != null && pinSE.Length > 0) PlaySE(pinSE[Random.Range(0, pinSE.Length)], pinSEVolume);
         UpdateHeader();
         if (card == selectedCard) UpdateDetail();
     }
@@ -505,14 +512,22 @@ public class AuctionBoardUI : MonoBehaviour
     /// </summary>
     private void PlaySubmitSE()
     {
-        if (submitSE == null) return;
+        PlaySE(submitSE, submitSEVolume);
+    }
+
+    /// <summary>
+    /// SEを1回鳴らす
+    /// </summary>
+    private void PlaySE(AudioClip clip, float volume)
+    {
+        if (clip == null) return;
         if (seSource == null)
         {
             seSource = gameObject.AddComponent<AudioSource>();
             seSource.playOnAwake = false;
             seSource.spatialBlend = 0f;
         }
-        seSource.PlayOneShot(submitSE, submitSEVolume);
+        seSource.PlayOneShot(clip, volume);
     }
 
     /// <summary>

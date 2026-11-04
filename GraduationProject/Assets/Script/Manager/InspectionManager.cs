@@ -234,7 +234,14 @@ public class InspectionManager : MonoBehaviour
         {
             if (inspectionTablePos != null)
             {
+                // カウンターのお宝が光っていたら消してからコピーし、鑑定台のお宝は光らせない
+                Outline counterOutline = itemPrefab.GetComponent<Outline>();
+                if (counterOutline != null) counterOutline.enabled = false;
+
                 currentInspectingItem = Instantiate(itemPrefab, inspectionTablePos.position, inspectionTablePos.rotation);
+
+                Outline copiedOutline = currentInspectingItem.GetComponent<Outline>();
+                if (copiedOutline != null) Destroy(copiedOutline);
                 currentInspectingItem.transform.SetParent(inspectionTablePos);
                 currentInspectingItem.transform.localPosition = Vector3.zero; // 鑑定台の中心にピタッと固定
 
@@ -271,10 +278,14 @@ public class InspectionManager : MonoBehaviour
             Rigidbody[] rbs = currentInspectingItem.GetComponentsInChildren<Rigidbody>();
             foreach (var rb in rbs)
             {
+                // isKinematicのときに速度を入れると警告が出るので、動いている物だけ先に止める
+                if (!rb.isKinematic)
+                {
+                    rb.velocity = Vector3.zero;
+                    rb.angularVelocity = Vector3.zero;
+                }
                 rb.isKinematic = true;
                 rb.useGravity = false;
-                rb.velocity = Vector3.zero;
-                rb.angularVelocity = Vector3.zero;
             }
 
             // 【判定調整】Colliderのめり込み等で跳ね飛ぶのを防ぐ
