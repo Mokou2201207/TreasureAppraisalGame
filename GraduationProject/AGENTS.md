@@ -36,6 +36,14 @@
     - `Assets/Script/Board/BoardCard.cs`
     - `Assets/Script/Board/ConfirmRow.cs`
     - `Assets/Script/Board/AuctionManager.cs`
+    - `Assets/Script/Editor/RoofBuilder.cs`
+    - `Assets/Script/Editor/ModelPrefabMaker.cs`
   - それ以外のスクリプトは、読んで説明・助言するだけにとどめ、勝手に書き換えない。
 - **質問のときは編集しない**:
   - ユーザーがプログラムについて質問しているだけのときは、回答や説明のみ行い、ファイルを勝手に書き換えない。
+
+## 4. モデル作りに関するルール
+- **モデルを作るときはプレハブも同時に作る**:
+  - AIがモデルを作ったときは、モデルだけで終わらせず、マテリアルを付けたプレハブまで必ず用意する。
+  - モデルとテクスチャーは `Assets/Model/モデル名/` に、プレハブは `Assets/Prefab/Model/` に置く。
+  - テクスチャーの名前は「モデル名_Albedo」「モデル名_Normal」にそろえる（`ModelPrefabMaker.cs` がこの名前でマテリアルを作る）。

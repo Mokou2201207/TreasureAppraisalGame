@@ -59,12 +59,24 @@ public class PlayerLook : MonoBehaviour
             }
 
             //掲示板に触れたら掲示板のUIを開く
-            int CarLayer = LayerMask.NameToLayer("AuctionBoard");
-            if (hit.collider.gameObject.layer == CarLayer)
+            int BoardLayer = LayerMask.NameToLayer("AuctionBoard");
+            if (hit.collider.gameObject.layer == BoardLayer)
             {
                 if (Input.GetMouseButtonDown(0)&&AuctionBoardUI.Instance!=null)
                 {
                     AuctionBoardUI.Instance.Open();
+                }
+                return;
+            }
+
+            //看板を開くか閉じるかの判定
+            int SignLayer = LayerMask.NameToLayer("Sign");
+            if (hit.collider.gameObject.layer== SignLayer)
+            {
+                OpenSignSwitch signSwitch = hit.collider.GetComponentInParent<OpenSignSwitch>();
+                if (Input.GetMouseButtonDown(0) && signSwitch != null)
+                {
+                    signSwitch.ToggleSign();
                 }
                 return;
             }

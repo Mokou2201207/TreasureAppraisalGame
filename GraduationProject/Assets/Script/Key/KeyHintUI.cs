@@ -127,6 +127,15 @@ public class KeyHintUI : MonoBehaviour
             return "Board";
         }
 
+        // PlayerLookと同じく、レイヤーで看板かどうかを見分ける
+        if (hit.collider.gameObject.layer == LayerMask.NameToLayer("Sign"))
+        {
+            OpenSignSwitch sign = hit.collider.GetComponentInParent<OpenSignSwitch>();
+            if (sign == null) return "None";
+            target = sign.gameObject;
+            return sign.isOpen ? "SignOpen" : "SignClosed";
+        }
+
         return "None";
     }
 
@@ -276,6 +285,12 @@ public class KeyHintUI : MonoBehaviour
                 break;
             case "Board":
                 AddRow("掲示板を見る", leftClickIcon);
+                break;
+            case "SignOpen":
+                AddRow("看板をCLOSEにする", leftClickIcon);
+                break;
+            case "SignClosed":
+                AddRow("看板をOPENにする", leftClickIcon);
                 break;
             case "BoardOpen":
                 AddRow("閉じる", escKeyIcon);

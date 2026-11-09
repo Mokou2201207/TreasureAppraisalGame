@@ -8,6 +8,7 @@ TagManager:
   - Human
   - LeftShoulder
   - RightShoulder
+  - lb_bird
   layers:
   - Default
   - TransparentFX
@@ -19,7 +20,7 @@ TagManager:
   - Car
   - Desk
   - AuctionBoard
-  - 
+  - Sign
   - 
   - 
   - 
