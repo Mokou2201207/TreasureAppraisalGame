@@ -35,13 +35,6 @@ public class Respawn : MonoBehaviour
     [System.Obsolete]
     void Spawn()
     {
-        // お店が閉まっている間はお客さんを出さず、次の予約だけする
-        if (sign != null && !sign.isOpen)
-        {
-            Invoke(nameof(Spawn), Random.Range(respawnTime, respawnMaxTime));
-            return;
-        }
-
         //このシーンにいるお客さんの数を数える
         MoveWaypoint[] activeCustomers = FindObjectsOfType<MoveWaypoint>();
         if (activeCustomers.Length >= maxCustomer)
@@ -65,12 +58,20 @@ public class Respawn : MonoBehaviour
             MoveWaypoint moveScript = spawnedCustomer.GetComponent<MoveWaypoint>();
             if (moveScript != null)
             {
-                int queueCount = 0;
-                foreach (var c in activeCustomers)
+                if (sign != null && !sign.isOpen)
                 {
-                    if (c.queuePositionNumber >= 0) queueCount++;
+                    // 閉店中は列に並ばず、出口ルートだけを歩く
+                    moveScript.SetExitOnly();
                 }
-                moveScript.SetQueuePosition(queueCount);
+                else
+                {
+                    int queueCount = 0;
+                    foreach (var c in activeCustomers)
+                    {
+                        if (c.queuePositionNumber >= 0) queueCount++;
+                    }
+                    moveScript.SetQueuePosition(queueCount);
+                }
             }
         }
 

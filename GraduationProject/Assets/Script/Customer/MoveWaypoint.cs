@@ -32,6 +32,9 @@ public class MoveWaypoint : MonoBehaviour
     //今たどっているルート
     private Transform[] route;
 
+    //閉店中に出てきて、出口ルートだけを歩くお客さんかどうか
+    private bool isExitOnly = false;
+
     /// 経路が確定して移動中かどうか
     public bool isMoving = false;
     // 停止中かどうか（最終目的地に到着して完了した状態）
@@ -78,7 +81,14 @@ public class MoveWaypoint : MonoBehaviour
         }
 
         // 最初のPointへ
-        MoveToNextPoint();
+        if (isExitOnly)
+        {
+            GoHome();
+        }
+        else
+        {
+            MoveToNextPoint();
+        }
     }
 
     /// <summary>
@@ -367,5 +377,13 @@ public class MoveWaypoint : MonoBehaviour
         currentIndex = 0;
         stopIndex = route.Length - 1;
         MoveToNextPoint();
+    }
+
+    /// <summary>
+    /// 閉店中に出てきたお客さんにする（列に並ばず、出口ルートだけを歩く）
+    /// </summary>
+    public void SetExitOnly()
+    {
+        isExitOnly = true;
     }
 }
