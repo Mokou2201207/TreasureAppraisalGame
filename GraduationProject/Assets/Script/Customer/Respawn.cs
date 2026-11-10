@@ -18,6 +18,9 @@ public class Respawn : MonoBehaviour
 
     [Header("お店に並べる最大人数"), SerializeField]
     private int maxCustomer = 5;
+
+    [Header("看板（OpenSignSwitch）をアタッチ"), SerializeField]
+    private OpenSignSwitch sign;
     /// <summary>
     /// 開始
     /// </summary>
@@ -32,6 +35,13 @@ public class Respawn : MonoBehaviour
     [System.Obsolete]
     void Spawn()
     {
+        // お店が閉まっている間はお客さんを出さず、次の予約だけする
+        if (sign != null && !sign.isOpen)
+        {
+            Invoke(nameof(Spawn), Random.Range(respawnTime, respawnMaxTime));
+            return;
+        }
+
         //このシーンにいるお客さんの数を数える
         MoveWaypoint[] activeCustomers = FindObjectsOfType<MoveWaypoint>();
         if (activeCustomers.Length >= maxCustomer)

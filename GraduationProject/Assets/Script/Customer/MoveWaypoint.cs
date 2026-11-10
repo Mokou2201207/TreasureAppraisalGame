@@ -29,6 +29,9 @@ public class MoveWaypoint : MonoBehaviour
     [Header("動き出すのに必要な前との距離の倍率"),SerializeField]
     private float resumeDistanceScale = 1.6f;
 
+    //今たどっているルート
+    private Transform[] route;
+
     /// 経路が確定して移動中かどうか
     public bool isMoving = false;
     // 停止中かどうか（最終目的地に到着して完了した状態）
@@ -69,9 +72,9 @@ public class MoveWaypoint : MonoBehaviour
         }
 
         // もし停止するポイントが設定されていなければ最後のポイントに設定
-        if (stopIndex < 0 && manager != null && manager.m_Waypoints != null && manager.m_Waypoints.Length > 0)
+        if (stopIndex < 0 && manager != null && manager.wayPoints != null && manager.wayPoints.Length > 0)
         {
-            stopIndex = manager.m_Waypoints.Length - 1;
+            stopIndex = manager.wayPoints.Length - 1;
         }
 
         // 最初のPointへ
@@ -200,9 +203,9 @@ public class MoveWaypoint : MonoBehaviour
         AdvanceQueue();
 
         // 最後のウェイポイント（出口）まで進むように停止インデックスを最後のポイントに更新
-        if (manager != null && manager.m_Waypoints != null && manager.m_Waypoints.Length > 0)
+        if (manager != null && manager.wayPoints != null && manager.wayPoints.Length > 0)
         {
-            stopIndex = manager.m_Waypoints.Length - 1;
+            stopIndex = manager.wayPoints.Length - 1;
 
             // もし既に最後のウェイポイントにいる場合はその場で削除
             if ((currentIndex - 1) >= stopIndex)
@@ -257,27 +260,22 @@ public class MoveWaypoint : MonoBehaviour
     /// </summary>
     void MoveToNextPoint()
     {
-        if (manager == null || manager.m_Waypoints == null || manager.m_Waypoints.Length == 0)
+        if(route==null && manager!=null) route=manager.wayPoints;
+
+        if (route == null || route.Length == 0)
         {
             Debug.Log("WaypointManagerのscriptが設定されていないか、Waypointsが空です。");
             return;
         }
 
-        // 最後の waypoint に到達チェック
-        if (currentIndex >= manager.m_Waypoints.Length)
+        if (currentIndex >= route.Length)
         {
-            // 削除
             Destroy(gameObject);
             return;
         }
 
-        // 次の移動ポイントセット
-        agent.destination = manager.m_Waypoints[currentIndex].position;
-
-        // フラグリセット（経路計算待ち）
+        agent.destination = route[currentIndex].position;
         isMoving = false;
-
-        // 次の index へ
         currentIndex++;
     }
 
@@ -349,5 +347,25 @@ public class MoveWaypoint : MonoBehaviour
         Gizmos.color = Color.yellow;
         Vector3 checkCenter = transform.position + Vector3.up * 0.5f + transform.forward * (stopDistanceToFrontCustomer * 0.5f);
         Gizmos.DrawWireSphere(checkCenter, stopDistanceToFrontCustomer * 0.6f);
+    }
+
+    /// <summary>
+    /// お店を閉めた後に、最後の出口まで移動する処理
+    /// </summary>
+    public void GoHome()
+    {
+        if(queuePositionNumber<0) return; // 既に退場済みなら何もしない
+        if(manager==null || manager.exitWayPoints==null|| manager.exitWayPoints.Length == 0) return;
+
+        queuePositionNumber = -1; // 列から離脱
+        isStopped = false;
+        isMoving = false;
+        isMoving = false;
+        if (agent != null && agent.enabled) agent.isStopped = false;
+
+        route = manager.exitWayPoints;
+        currentIndex = 0;
+        stopIndex = route.Length - 1;
+        MoveToNextPoint();
     }
 }
