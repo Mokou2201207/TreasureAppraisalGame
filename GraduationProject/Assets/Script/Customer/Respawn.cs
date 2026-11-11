@@ -21,6 +21,9 @@ public class Respawn : MonoBehaviour
 
     [Header("看板（OpenSignSwitch）をアタッチ"), SerializeField]
     private OpenSignSwitch sign;
+
+    [Header("時間管理（GameClock）をアタッチ"), SerializeField]
+    private GameClock clock;
     /// <summary>
     /// 開始
     /// </summary>
@@ -58,7 +61,7 @@ public class Respawn : MonoBehaviour
             MoveWaypoint moveScript = spawnedCustomer.GetComponent<MoveWaypoint>();
             if (moveScript != null)
             {
-                if (sign != null && !sign.isOpen)
+                if ((sign != null && !sign.isOpen) || (clock != null && clock.IsClosingTime))
                 {
                     // 閉店中は列に並ばず、出口ルートだけを歩く
                     moveScript.SetExitOnly();
