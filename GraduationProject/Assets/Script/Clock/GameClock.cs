@@ -36,12 +36,6 @@ public class GameClock : MonoBehaviour
     [Header("夜の太陽の明るさ"), SerializeField]
     private float nightSunIntensity = 0.2f;
 
-    private Material skyMaterial;
-    private Color dayTint;
-    private float dayExposure;
-    private float daySunIntensity;
-    private Color dayLightColor;
-
     [Header("夕焼けの空と太陽の色"), SerializeField]
     private Color sunsetTint = new Color(1f, 0.6f, 0.45f);
 
@@ -54,21 +48,35 @@ public class GameClock : MonoBehaviour
     [Header("暗くなる時間（時）"), SerializeField]
     private float nightHour = 19f;
 
+    private Material skyMaterial;
+    private Color dayTint;
+    private float dayExposure;
+    private float daySunIntensity;
+    private Color dayLightColor;
+
     public int Day { get; private set; } = 1;
     public bool IsClosingTime { get; private set; } = false;
 
     private void Start()
     {
+        // 時計を開店の時間に合わせる
         currentMinutes = startHour * 60f;
         UpdateText();
 
+        // 入れ忘れていても、シーンの太陽を探す
         if (sunLight == null) sunLight = RenderSettings.sun;
+
         if (RenderSettings.skybox != null)
         {
+            // アセットの空をそのまま書きかえないように、コピーを作って使う
             skyMaterial = new Material(RenderSettings.skybox);
+
+            // 色と明るさを変えられるシェーダーに切りかえる
             Shader sixSided = Shader.Find("Skybox/6 Sided");
             if (sixSided != null) skyMaterial.shader = sixSided;
             RenderSettings.skybox = skyMaterial;
+
+            // 昼の色と明るさを覚えておく（変えられない空なら、空の変化はあきらめる）
             if (skyMaterial.HasProperty("_Tint") && skyMaterial.HasProperty("_Exposure"))
             {
                 dayTint = skyMaterial.GetColor("_Tint");
@@ -79,6 +87,8 @@ public class GameClock : MonoBehaviour
                 skyMaterial = null;
             }
         }
+
+        // 昼の太陽の明るさと色を覚えておく
         if (sunLight != null)
         {
             daySunIntensity = sunLight.intensity;
@@ -88,6 +98,7 @@ public class GameClock : MonoBehaviour
 
     private void Update()
     {
+        // 看板をOpenにしたら時間が動き出す
         if (!isRunning && !IsClosingTime && sign != null && sign.isOpen)
         {
             isRunning = true;
@@ -98,13 +109,16 @@ public class GameClock : MonoBehaviour
             UpdateTime();
         }
 
+        // 時間が止まっていても、空は今の時刻の見た目にしておく
         UpdateSky();
     }
 
     private void UpdateTime()
     {
+        // 時間を進める
         currentMinutes += minutesPerSecond * Time.deltaTime;
 
+        // 閉店の時間になったら、時間を止めて閉店の合図を出す
         if (currentMinutes >= endHour * 60f)
         {
             currentMinutes = endHour * 60f;
@@ -120,8 +134,11 @@ public class GameClock : MonoBehaviour
     /// </summary>
     public void StartNewDay()
     {
+        // 日にちを1つ進めて、時計を開店の時間に戻す
         Day++;
         currentMinutes = startHour * 60f;
+
+        // 看板をOpenにするまでは時間を止めておく
         isRunning = false;
         IsClosingTime = false;
         UpdateText();
@@ -133,12 +150,17 @@ public class GameClock : MonoBehaviour
     private void UpdateSky()
     {
         float hour = currentMinutes / 60f;
+
+        // 1日の進み具合（太陽の向きに使う）
         float t = Mathf.InverseLerp(startHour, endHour, hour);
+
+        // 夕焼けの濃さと、暗さの進み具合
         float sunset = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(sunsetStartHour, sunsetPeakHour, hour));
         float dark = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(sunsetPeakHour, nightHour, hour));
 
         if (skyMaterial != null)
         {
+            // 昼の色から夕焼けの色へ、そこから夜の色へ変えていく
             Color tint = Color.Lerp(dayTint, sunsetTint, sunset);
             skyMaterial.SetColor("_Tint", Color.Lerp(tint, nightTint, dark));
             skyMaterial.SetFloat("_Exposure", Mathf.Lerp(dayExposure, nightExposure, dark));
@@ -146,8 +168,11 @@ public class GameClock : MonoBehaviour
 
         if (sunLight != null)
         {
+            // 夜に近づくほど太陽を暗くして、夕方は光の色を夕焼けに寄せる
             sunLight.intensity = Mathf.Lerp(daySunIntensity, nightSunIntensity, dark);
             sunLight.color = Color.Lerp(dayLightColor, sunsetTint, sunset);
+
+            // 朝から夜へ、太陽を少しずつ動かす
             sunLight.transform.rotation = Quaternion.Euler(50f, Mathf.Lerp(-30f, 210f, t), 0f);
         }
     }
@@ -156,6 +181,7 @@ public class GameClock : MonoBehaviour
     {
         if (timeText == null) return;
 
+        // 分の合計を「時」と「分」に分けて、00:00の形で出す
         int hour = (int)(currentMinutes / 60f);
         int minute = (int)(currentMinutes % 60f);
         timeText.text = $"{hour:00}:{minute:00}";
