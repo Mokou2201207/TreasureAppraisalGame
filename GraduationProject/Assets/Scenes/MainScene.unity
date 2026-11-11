@@ -3932,7 +3932,7 @@ MonoBehaviour:
   timeText: {fileID: 179136496}
   startHour: 8
   endHour: 21
-  minutesPerSecond: 30
+  minutesPerSecond: 1.5
   sunLight: {fileID: 748500531}
   nightTint: {r: 0.15, g: 0.17, b: 0.25, a: 1}
   nightExposure: 0.3

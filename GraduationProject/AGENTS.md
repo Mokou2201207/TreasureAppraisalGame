@@ -4,8 +4,12 @@
 - **元々書かれていたコメントの維持**:
   - もともとコード内に存在していたコメントやコメントアウトは、勝手に書き換えたり新規に付け加えたりしない。
 - **新しく書くコードのコメント**:
-  - 新しく書いたプログラム部分にコメントを付けるのはOK。
-  - ただし、そこから無駄にコメントを付け足したり増やしたりすることは禁止。
+  - 関数の上には `/// <summary>` で、その関数が何をするかを書く。
+  - 関数の中にも、処理のまとまりごとに「この処理は何をしているか」のコメントを書く（1行ごとには付けない）。
+  - 文章はユーザーのコメントの書き方に合わせる。
+    - 関数の説明は「〜する処理」「〜用の関数」「更新処理」のように短くまとめる。
+    - 中のコメントは「〜したら〜する」「〜をセット」「〜へ」「nullチェック」のような短い言い方にする。
+    - 「持ってる」のような、ふだんの話し言葉の言い方でよい。
 - **コメント内の番号表記の禁止**:
   - コメントを記述する際、「1.」「2.」などの番号（箇条書き数字）は付けない。
 
@@ -23,22 +27,8 @@
 
 ## 3. プログラムの編集に関するルール
 - **AIが編集してよいスクリプト**:
-  - AIが書いたり修正したりしてよいのは、以下の「※AI担当」と書かれたスクリプトのみ。
-    - `Assets/Script/Manager/NegotiationManager.cs`
-    - `Assets/Script/Manager/InspectionManager.cs`
-    - `Assets/Script/Radio/RadioMusic.cs`
-    - `Assets/Script/Key/KeyHintRow.cs`
-    - `Assets/Script/Key/KeyHintUI.cs`
-    - `Assets/Script/Text/DealResultUI.cs`
-    - `Assets/Script/Text/AnimatedMoneyText.cs`
-    - `Assets/Script/Inventory/InventoryUI.cs`
-    - `Assets/Script/Board/AuctionBoardUI.cs`
-    - `Assets/Script/Board/BoardCard.cs`
-    - `Assets/Script/Board/ConfirmRow.cs`
-    - `Assets/Script/Board/AuctionManager.cs`
-    - `Assets/Script/Editor/RoofBuilder.cs`
-    - `Assets/Script/Editor/ModelPrefabMaker.cs`
-  - それ以外のスクリプトは、読んで説明・助言するだけにとどめ、勝手に書き換えない。
+  - 体験版を作るため、`Assets/Script` の中のスクリプトは、すべてAIが書いたり修正したりしてよい。
+  - 書きかえる前には、必ずそのときのファイルの中身を読んでから直す（ユーザーが途中で直していることがあるため）。
 - **質問のときは編集しない**:
   - ユーザーがプログラムについて質問しているだけのときは、回答や説明のみ行い、ファイルを勝手に書き換えない。
 
