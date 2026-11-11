@@ -44,12 +44,6 @@ public class OpenSignSwitch : MonoBehaviour
         nextToggleTime = Time.time + moveTime;
         isOpen = !isOpen;
         animator.SetBool("isOpen", isOpen);
-
-        // •Â“XF‚¨‹q‚³‚ñ‘Sˆõ‚É‹A‚Á‚Ä‚à‚ç‚¤
-        foreach (MoveWaypoint customer in FindObjectsOfType<MoveWaypoint>())
-        {
-            customer.GoHome();
-        }
     }
 
     /// <summary>

@@ -29,6 +29,9 @@ public class Respawn : MonoBehaviour
     /// </summary>
     private void Start()
     {
+        // Inspector‚Å“ü‚ê–Y‚ê‚Ä‚¢‚Ä‚àAƒV[ƒ“‚©‚çŠÔŠÇ—‚ğ’T‚·
+        if (clock == null) clock = FindObjectOfType<GameClock>();
+
         Spawn();
     }
 

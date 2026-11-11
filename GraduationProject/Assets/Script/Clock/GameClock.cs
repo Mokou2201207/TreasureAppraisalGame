@@ -24,6 +24,36 @@ public class GameClock : MonoBehaviour
     private float currentMinutes;
     private bool isRunning = false;
 
+    [Header("太陽（Directional Light）"), SerializeField]
+    private Light sunLight;
+
+    [Header("夜の空の色"), SerializeField]
+    private Color nightTint = new Color(0.15f, 0.17f, 0.25f);
+
+    [Header("夜の空の明るさ"), SerializeField]
+    private float nightExposure = 0.3f;
+
+    [Header("夜の太陽の明るさ"), SerializeField]
+    private float nightSunIntensity = 0.2f;
+
+    private Material skyMaterial;
+    private Color dayTint;
+    private float dayExposure;
+    private float daySunIntensity;
+    private Color dayLightColor;
+
+    [Header("夕焼けの空と太陽の色"), SerializeField]
+    private Color sunsetTint = new Color(1f, 0.6f, 0.45f);
+
+    [Header("夕焼けが始まる時間（時）"), SerializeField]
+    private float sunsetStartHour = 16f;
+
+    [Header("夕焼けの色になる時間（時）"), SerializeField]
+    private float sunsetPeakHour = 17f;
+
+    [Header("暗くなる時間（時）"), SerializeField]
+    private float nightHour = 19f;
+
     public int Day { get; private set; } = 1;
     public bool IsClosingTime { get; private set; } = false;
 
@@ -31,6 +61,29 @@ public class GameClock : MonoBehaviour
     {
         currentMinutes = startHour * 60f;
         UpdateText();
+
+        if (sunLight == null) sunLight = RenderSettings.sun;
+        if (RenderSettings.skybox != null)
+        {
+            skyMaterial = new Material(RenderSettings.skybox);
+            Shader sixSided = Shader.Find("Skybox/6 Sided");
+            if (sixSided != null) skyMaterial.shader = sixSided;
+            RenderSettings.skybox = skyMaterial;
+            if (skyMaterial.HasProperty("_Tint") && skyMaterial.HasProperty("_Exposure"))
+            {
+                dayTint = skyMaterial.GetColor("_Tint");
+                dayExposure = skyMaterial.GetFloat("_Exposure");
+            }
+            else
+            {
+                skyMaterial = null;
+            }
+        }
+        if (sunLight != null)
+        {
+            daySunIntensity = sunLight.intensity;
+            dayLightColor = sunLight.color;
+        }
     }
 
     private void Update()
@@ -44,6 +97,8 @@ public class GameClock : MonoBehaviour
         {
             UpdateTime();
         }
+
+        UpdateSky();
     }
 
     private void UpdateTime()
@@ -55,7 +110,6 @@ public class GameClock : MonoBehaviour
             currentMinutes = endHour * 60f;
             isRunning = false;
             IsClosingTime = true;
-            SendEveryoneHome();
         }
 
         UpdateText();
@@ -74,13 +128,27 @@ public class GameClock : MonoBehaviour
     }
 
     /// <summary>
-    /// 列に並んでいるお客さんを全員帰らせる
+    /// 時間に合わせて、空の色・明るさ・太陽の向きを変える
     /// </summary>
-    private void SendEveryoneHome()
+    private void UpdateSky()
     {
-        foreach (MoveWaypoint customer in FindObjectsOfType<MoveWaypoint>())
+        float hour = currentMinutes / 60f;
+        float t = Mathf.InverseLerp(startHour, endHour, hour);
+        float sunset = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(sunsetStartHour, sunsetPeakHour, hour));
+        float dark = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(sunsetPeakHour, nightHour, hour));
+
+        if (skyMaterial != null)
         {
-            customer.GoHome();
+            Color tint = Color.Lerp(dayTint, sunsetTint, sunset);
+            skyMaterial.SetColor("_Tint", Color.Lerp(tint, nightTint, dark));
+            skyMaterial.SetFloat("_Exposure", Mathf.Lerp(dayExposure, nightExposure, dark));
+        }
+
+        if (sunLight != null)
+        {
+            sunLight.intensity = Mathf.Lerp(daySunIntensity, nightSunIntensity, dark);
+            sunLight.color = Color.Lerp(dayLightColor, sunsetTint, sunset);
+            sunLight.transform.rotation = Quaternion.Euler(50f, Mathf.Lerp(-30f, 210f, t), 0f);
         }
     }
 
