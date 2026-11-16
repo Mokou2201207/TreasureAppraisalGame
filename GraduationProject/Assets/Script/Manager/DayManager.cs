@@ -48,7 +48,7 @@ public class DayManager : MonoBehaviour
     /// <summary>
     /// c‚è“ú”‚ğŒ¸‚ç‚·ˆ—
     /// </summary>
-    private void NextDay()
+    public void NextDay()
     {
         //c‚è“ú”‚ª‚OˆÈ‰º‚É‚È‚Á‚½‚çˆ—‚ğ‚µ‚È‚¢
         if (dayCount <= 0) return;

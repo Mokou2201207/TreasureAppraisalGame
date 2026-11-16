@@ -154,6 +154,19 @@ public class KeyHintUI : MonoBehaviour
             return door.IsLocked ? "DoorLocked" : "DoorClosed";
         }
 
+        // PlayerLookと同じく、レイヤーでベッドかどうかを見分ける
+        if (hit.collider.gameObject.layer == LayerMask.NameToLayer("Bed"))
+        {
+            BedSleep bed = hit.collider.GetComponentInParent<BedSleep>();
+
+            //ベッドがない、寝ている途中、または操作できる距離の外なら出さない
+            if (bed == null || bed.IsSleeping || hit.distance > bed.InteractDistance) return "None";
+
+            //寝られるかどうかで表示を変える
+            target = bed.gameObject;
+            return bed.CanSleep(out _) ? "BedCanSleep" : "BedCannotSleep";
+        }
+
         return "None";
     }
 
@@ -320,6 +333,12 @@ public class KeyHintUI : MonoBehaviour
                 break;
             case "DoorLocked":
                 AddRow("鍵がかかっている", leftClickIcon);
+                break;
+            case "BedCanSleep":
+                AddRow("寝て次の日にする", leftClickIcon);
+                break;
+            case "BedCannotSleep":
+                AddRow("まだ寝られない", leftClickIcon);
                 break;
             case "BoardOpen":
                 AddRow("閉じる", escKeyIcon);

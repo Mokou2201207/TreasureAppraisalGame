@@ -95,6 +95,19 @@ public class PlayerLook : MonoBehaviour
                 return;
             }
 
+            //ベットに触れているかの判定判定
+            int bedLayer = LayerMask.NameToLayer("Bed");
+            if (hit.collider.gameObject.layer == bedLayer)
+            {
+                BedSleep bed = hit.collider.GetComponentInParent<BedSleep>();
+
+                //操作できる距離の中でクリックしたらベッドで寝る
+                if (Input.GetMouseButtonDown(0) && bed != null && hit.distance <= bed.InteractDistance)
+                {
+                    bed.TrySleep();
+                }
+                return;
+            }
 
 
             // お宝判定の検索

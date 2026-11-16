@@ -44,6 +44,25 @@ public class OpenSignSwitch : MonoBehaviour
         nextToggleTime = Time.time + moveTime;
         isOpen = !isOpen;
         animator.SetBool("isOpen", isOpen);
+
+        //閉店にしたら、並んでいるお客さんには帰ってもらう
+        if (!isOpen) SendWaitingCustomersHome();
+    }
+
+    /// <summary>
+    /// 列に並んでいるお客さんを帰らせる処理（お宝を出しているお客さんは残す）
+    /// </summary>
+    private void SendWaitingCustomersHome()
+    {
+        foreach (MoveWaypoint customer in FindObjectsOfType<MoveWaypoint>())
+        {
+            //お宝をもう出しているお客さんは、取引が終わるまで残す
+            CustomerItem item = customer.GetComponentInChildren<CustomerItem>();
+            if (item != null && item.isItemDropped) continue;
+
+            //それ以外のお客さんは出口へ帰る（帰っている途中の人はGoHomeの中で何もしない）
+            customer.GoHome();
+        }
     }
 
     /// <summary>
