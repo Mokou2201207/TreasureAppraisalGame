@@ -31,6 +31,10 @@ public class KeyHintUI : MonoBehaviour
     [SerializeField, Range(0f, 10f)] private float outlineWidth = 5f;
     [SerializeField] private Outline.Mode outlineMode = Outline.Mode.OutlineVisible;
 
+    [Header("ドアの光らせ方（枠に隠れて見えにくいので、枠の後ろの線も出して太くする）")]
+    [SerializeField] private Outline.Mode doorOutlineMode = Outline.Mode.OutlineAll;
+    [SerializeField, Range(0f, 10f)] private float doorOutlineWidth = 8f;
+
     // 今表示している状態
     private string currentState = "";
     private InventoryUI inventoryUI;
@@ -136,6 +140,20 @@ public class KeyHintUI : MonoBehaviour
             return sign.isOpen ? "SignOpen" : "SignClosed";
         }
 
+        // PlayerLookと同じく、レイヤーでドアかどうかを見分ける
+        if (hit.collider.gameObject.layer == LayerMask.NameToLayer("Door"))
+        {
+            DoorSwitch door = hit.collider.GetComponentInParent<DoorSwitch>();
+
+            //ドアがない、または操作できる距離の外なら出さない
+            if (door == null || hit.distance > door.InteractDistance) return "None";
+
+            //ドアの今の状態に合わせて表示を変える
+            target = door.gameObject;
+            if (door.IsOpen) return "DoorOpen";
+            return door.IsLocked ? "DoorLocked" : "DoorClosed";
+        }
+
         return "None";
     }
 
@@ -174,9 +192,11 @@ public class KeyHintUI : MonoBehaviour
             currentOutline = target.AddComponent<Outline>();
         }
 
-        currentOutline.OutlineMode = outlineMode;
+        //ドアは枠に隠れるので、ドア用の光らせ方にする
+        bool isDoor = target.GetComponent<DoorSwitch>() != null;
+        currentOutline.OutlineMode = isDoor ? doorOutlineMode : outlineMode;
         currentOutline.OutlineColor = outlineColor;
-        currentOutline.OutlineWidth = outlineWidth;
+        currentOutline.OutlineWidth = isDoor ? doorOutlineWidth : outlineWidth;
         currentOutline.enabled = true;
 
         // 付けた直後の1フレームだけ、カウンターを貫通して光るのを防ぐ
@@ -291,6 +311,15 @@ public class KeyHintUI : MonoBehaviour
                 break;
             case "SignClosed":
                 AddRow("看板をOPENにする", leftClickIcon);
+                break;
+            case "DoorOpen":
+                AddRow("ドアを閉める", leftClickIcon);
+                break;
+            case "DoorClosed":
+                AddRow("ドアを開ける", leftClickIcon);
+                break;
+            case "DoorLocked":
+                AddRow("鍵がかかっている", leftClickIcon);
                 break;
             case "BoardOpen":
                 AddRow("閉じる", escKeyIcon);

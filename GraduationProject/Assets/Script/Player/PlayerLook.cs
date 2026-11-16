@@ -81,6 +81,20 @@ public class PlayerLook : MonoBehaviour
                 return;
             }
 
+            //家のドアが開くか開かないかの判定
+            int houseLayer = LayerMask.NameToLayer("Door");
+            if (hit.collider.gameObject.layer == houseLayer)
+            {
+                DoorSwitch door = hit.collider.GetComponentInParent<DoorSwitch>();
+
+                //操作できる距離の中でクリックしたらドアを開け閉めする
+                if (Input.GetMouseButtonDown(0) && door != null && hit.distance <= door.InteractDistance)
+                {
+                    door.ToggleDoor();
+                }
+                return;
+            }
+
 
 
             // お宝判定の検索
