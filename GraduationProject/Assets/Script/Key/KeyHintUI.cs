@@ -75,6 +75,7 @@ public class KeyHintUI : MonoBehaviour
         if (inventoryUI == null) inventoryUI = FindObjectOfType<InventoryUI>();
         if (inventoryUI != null && inventoryUI.IsOpen) return "Inventory";
         if (AuctionBoardUI.Instance != null && AuctionBoardUI.Instance.IsOpen) return "BoardOpen";
+        if (AuctionResultUI.Instance != null && AuctionResultUI.Instance.IsOpen) return "ResultOpen";
 
         if (InspectionManager.Instance != null && InspectionManager.Instance.IsInspecting)
         {
@@ -165,6 +166,20 @@ public class KeyHintUI : MonoBehaviour
             //寝られるかどうかで表示を変える
             target = bed.gameObject;
             return bed.CanSleep(out _) ? "BedCanSleep" : "BedCannotSleep";
+        }
+
+        // PlayerLookと同じく、レイヤーでポストかどうかを見分ける
+        if (hit.collider.gameObject.layer == LayerMask.NameToLayer("Mailbox"))
+        {
+            MailboxPost mailbox = hit.collider.GetComponentInParent<MailboxPost>();
+
+            //ポストがない、または操作できる距離の外なら出さない
+            if (mailbox == null || hit.distance > mailbox.InteractDistance) return "None";
+
+            //結果が届いているときだけ光らせる
+            if (!mailbox.HasResults) return "MailboxEmpty";
+            target = mailbox.gameObject;
+            return "MailboxHasLetter";
         }
 
         return "None";
@@ -339,6 +354,15 @@ public class KeyHintUI : MonoBehaviour
                 break;
             case "BedCannotSleep":
                 AddRow("まだ寝られない", leftClickIcon);
+                break;
+            case "MailboxHasLetter":
+                AddRow("オークションの結果を見る", leftClickIcon);
+                break;
+            case "MailboxEmpty":
+                AddRow("手紙はまだ届いていない", leftClickIcon);
+                break;
+            case "ResultOpen":
+                AddRow("受け取る", leftClickIcon);
                 break;
             case "BoardOpen":
                 AddRow("閉じる", escKeyIcon);

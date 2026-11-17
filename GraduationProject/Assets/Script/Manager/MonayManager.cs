@@ -88,6 +88,14 @@ public class MonayManager : MonoBehaviour
     }
 
     /// <summary>
+    /// ‚¨‹à‚ğó‚¯æ‚éˆ—
+    /// </summary>
+    public void AddMonay(int amount)
+    {
+        currentMonay += amount;
+    }
+
+    /// <summary>
     /// u¡‚Ì‚¨‹à/–Ú•W‹àŠzv‚Ì•¶š‚ğì‚é
     /// </summary>
     public string GetMoneyText()

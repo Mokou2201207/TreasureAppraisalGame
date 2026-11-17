@@ -109,6 +109,20 @@ public class PlayerLook : MonoBehaviour
                 return;
             }
 
+            //ポストに触れているかの判定
+            int mailboxLayer = LayerMask.NameToLayer("Mailbox");
+            if (hit.collider.gameObject.layer == mailboxLayer)
+            {
+                MailboxPost mailbox = hit.collider.GetComponentInParent<MailboxPost>();
+
+                //操作できる距離の中でクリックしたら結果を見る
+                if (Input.GetMouseButtonDown(0) && mailbox != null && hit.distance <= mailbox.InteractDistance)
+                {
+                    mailbox.OpenResult();
+                }
+                return;
+            }
+
 
             // お宝判定の検索
             ItemData treasure = hit.collider.GetComponent<ItemData>();

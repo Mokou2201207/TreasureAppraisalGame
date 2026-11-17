@@ -85,6 +85,10 @@ public class BedSleep : MonoBehaviour
         if (fadeAnimator == null) fadeAnimator = FindFadeAnimator();
         if (fadeAnimator == null) Debug.LogWarning("[BedSleep] 画面を暗くするAnimatorが見つかりません。Fade Animator に入れてください。");
 
+        //黒い画像は透明でもクリックを受け止めて、交渉などのボタンが押せなくなるので、クリックを通すようにする
+        Graphic fadeGraphic = fadeAnimator != null ? fadeAnimator.GetComponent<Graphic>() : null;
+        if (fadeGraphic != null) fadeGraphic.raycastTarget = false;
+
         //ローディングに出す物を集めて、最初は隠しておく（暗くする画像は隠さない）
         CollectLoadingParts();
         SetLoadingActive(false);
@@ -182,6 +186,9 @@ public class BedSleep : MonoBehaviour
         //ローディングの間に、時計を朝の8時に戻して残り日数を減らす（空も朝に戻る）
         if (clock != null) clock.StartNewDay();
         if (DayManager.Instance != null) DayManager.Instance.NextDay();
+
+        //前の日に出品したお宝を売って、結果を作る（ポストで受け取る）
+        if (AuctionManager.Instance != null) AuctionManager.Instance.ResolveAuctions();
 
         //ローディングを少しの間出しておいてから消す
         yield return new WaitForSeconds(sleepTime);

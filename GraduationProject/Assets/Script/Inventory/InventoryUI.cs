@@ -44,6 +44,8 @@ public class InventoryUI : MonoBehaviour
             if (NegotiationManager.Instance != null && NegotiationManager.Instance.IsNegotiating) return;
             // 掲示板が開いているあいだはインベントリを開けない
             if (AuctionBoardUI.Instance != null && AuctionBoardUI.Instance.IsOpen) return;
+            // 結果の手紙を開いているあいだもインベントリを開けない
+            if (AuctionResultUI.Instance != null && AuctionResultUI.Instance.IsOpen) return;
 
             // プレイヤーはあとからスポーンするので、まだ見つけていなければ探す
             if (mouseLookScript == null) mouseLookScript = FindObjectOfType<MouseLook>();

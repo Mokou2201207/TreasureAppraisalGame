@@ -8,7 +8,22 @@ using UnityEngine.UI;
 public class AuctionBoardUI : MonoBehaviour
 {
     //インスタンス化
-  public static AuctionBoardUI Instance { get; private set; }
+    private static AuctionBoardUI instance;
+    private static float nextFindTime;
+    public static AuctionBoardUI Instance
+    {
+        get
+        {
+            //チェックを外していてまだ動いていなくても使えるように、シーンから探す（探しすぎないように1秒に1回まで）
+            if (instance == null && Time.unscaledTime >= nextFindTime)
+            {
+                nextFindTime = Time.unscaledTime + 1f;
+                instance = FindObjectOfType<AuctionBoardUI>(true);
+            }
+            return instance;
+        }
+        private set { instance = value; }
+    }
 
     [Header("掲示板のパネル")]
     [SerializeField] private GameObject boardPanel;
@@ -90,6 +105,9 @@ public class AuctionBoardUI : MonoBehaviour
     // 閉じたフレーム（同じEscで設定画面まで開かないようにする）
     private int closedFrame = -1;
 
+    // 最初の準備が終わったかどうか
+    private bool initialized = false;
+
     // カメラが動いている途中かどうか
     private bool isMoving = false;
     // 開く前のカメラの位置と向き（プレイヤーから見た位置）
@@ -112,7 +130,7 @@ public class AuctionBoardUI : MonoBehaviour
     private AudioSource seSource;
 
     // 掲示板が開いているか（カメラが動いている途中も開いている扱いにする）
-    public bool IsOpen => isMoving || (boardPanel != null && boardPanel.activeSelf);
+    public bool IsOpen => isMoving || (boardPanel != null && boardPanel.activeInHierarchy);
     // Escをほかのスクリプトに使わせたくないとき
     public bool BlockEscape => IsOpen || closedFrame == Time.frameCount;
 
@@ -126,6 +144,18 @@ public class AuctionBoardUI : MonoBehaviour
     /// </summary>
     private void Start()
     {
+        Init();
+    }
+
+    /// <summary>
+    /// 最初の準備（チェックを外していても、開くときにここを通す）
+    /// </summary>
+    private void Init()
+    {
+        //もう準備していたら何もしない
+        if (initialized) return;
+        initialized = true;
+
         // 掲示板パネルを非表示にする
         boardPanel.SetActive(false);
 
@@ -171,8 +201,28 @@ public class AuctionBoardUI : MonoBehaviour
     /// </summary>
     public void Open()
     {
+        //チェックが外れていたら、ここで動くようにして準備する
+        if (!gameObject.activeInHierarchy) ActivateWithParents(transform);
+        Init();
+
+        //パネルの親のチェックが外れていると、パネルを出しても見えないので、親のチェックを入れる
+        if (boardPanel != null) ActivateWithParents(boardPanel.transform.parent);
+        if (confirmPanel != null) ActivateWithParents(confirmPanel.transform.parent);
+
         if (IsOpen) return;
         StartCoroutine(OpenRoutine());
+    }
+
+    /// <summary>
+    /// 渡した物から上の親まで、チェックが外れていたら全部入れる処理
+    /// </summary>
+    private void ActivateWithParents(Transform t)
+    {
+        while (t != null)
+        {
+            if (!t.gameObject.activeSelf) t.gameObject.SetActive(true);
+            t = t.parent;
+        }
     }
 
     /// <summary>
