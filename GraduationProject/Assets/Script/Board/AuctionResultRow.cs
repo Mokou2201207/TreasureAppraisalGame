@@ -18,6 +18,9 @@ public class AuctionResultRow : MonoBehaviour
     [Header("鑑定チェックの○×（傷・話・ミッション①・ミッション②の順）"), SerializeField]
     private Image[] checkMarks = new Image[4];
 
+    [Header("丸×の上の文字（傷・情報・ミッション①・ミッション②の順）"), SerializeField]
+    private Text[] checkLabels = new Text[4];
+
     [Header("落札価格"), SerializeField]
     private Text soldPriceText;
 
@@ -74,6 +77,13 @@ public class AuctionResultRow : MonoBehaviour
             if (checkMarks[i] == null) continue;
             checkMarks[i].sprite = correct[i] ? correctSprite : wrongSprite;
             checkMarks[i].preserveAspect = true;
+        }
+
+        //丸×の上の文字を出す（傷・情報は固定、ミッションは宝ごとの文字）
+        string[] labelTexts = { "傷", "情報", item.mission1Name ?? "", item.mission2Name ?? "" };
+        for (int i = 0; i < checkLabels.Length && i < labelTexts.Length; i++)
+        {
+            if (checkLabels[i] != null) checkLabels[i].text = labelTexts[i];
         }
 
         //落札価格は、もうけなら緑、損なら赤

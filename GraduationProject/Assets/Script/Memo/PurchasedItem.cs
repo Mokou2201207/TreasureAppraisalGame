@@ -15,6 +15,9 @@ public class PurchasedItem
     public bool isDescriptionWrong;
     public bool isAppraisalMission1;
     public bool isAppraisalMission2;
+    // 宝ごとのミッションの文字（結果の手紙に出す）
+    public string mission1Name = "";
+    public string mission2Name = "";
 
     // プレイヤーが鑑定リストに付けたチェック
     public bool checkedDamaged;

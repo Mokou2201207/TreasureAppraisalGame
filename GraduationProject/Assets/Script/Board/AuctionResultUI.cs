@@ -63,7 +63,6 @@ public class AuctionResultUI : MonoBehaviour
 
     //受け取る売上の合計
     private int totalPrice;
-    private AudioSource audioSource;
 
     /// <summary>
     /// 開始前
@@ -213,13 +212,11 @@ public class AuctionResultUI : MonoBehaviour
         //音が入っていなければ鳴らさない
         if (clip == null) return;
 
-        //AudioSourceがなければ付けて、距離で音量が変わらないようにする
-        if (audioSource == null)
-        {
-            audioSource = gameObject.AddComponent<AudioSource>();
-            audioSource.playOnAwake = false;
-            audioSource.spatialBlend = 0f;
-        }
-        audioSource.PlayOneShot(clip);
+        //手紙を閉じると手紙の中の音も止まるので、音だけの別のオブジェクトで鳴らす
+        GameObject seObject = new GameObject("SE_" + clip.name);
+        AudioSource source = seObject.AddComponent<AudioSource>();
+        source.spatialBlend = 0f;
+        source.PlayOneShot(clip);
+        Destroy(seObject, clip.length + 0.5f);
     }
 }

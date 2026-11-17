@@ -16,7 +16,7 @@ public class ItemData : MonoBehaviour
     {
         古い壺,
         ヨーロッパ風の壺,
-        海から引き上げられた壺,
+        深海の壺,
     }
 
     [Header("アイテムの名称")]
@@ -31,6 +31,10 @@ public class ItemData : MonoBehaviour
     public string appraisalMission1;
     [Header("鑑定オリジナルミッション②")]
     public string appraisalMission2;
+    [Header("結果の手紙に出す短いミッション名①")]
+    public string resultMission1Name;
+    [Header("結果の手紙に出す短いミッション名②")]
+    public string resultMission2Name;
 
     [Header("基本最高金額の値段")]
     public float highestPrice;
@@ -131,7 +135,7 @@ public class ItemData : MonoBehaviour
                 string europePotPriceText5 = highestPrice.ToString("N0") + "$";
                 break;
 
-            case ItemCategory.海から引き上げられた壺:
+            case ItemCategory.深海の壺:
                 itemDescription = "海の底から網にかかって引き上げられたという、灰白色の古い壺。\n片側だけにフジツボやさびのしみが集まり、砂に埋もれていた跡が見てとれる。";
                 appraisalMission1 = "ヒトデがくっついているか";
                 appraisalMission2 = "底に新しい窯の印がある";
@@ -219,7 +223,7 @@ public class ItemData : MonoBehaviour
                 };
                 break;
 
-            case ItemCategory.海から引き上げられた壺:
+            case ItemCategory.深海の壺:
                 correctTexts = new string[]
                 {
                     "漁師の父の網に、ある朝ひっかかってきた壺なんです",

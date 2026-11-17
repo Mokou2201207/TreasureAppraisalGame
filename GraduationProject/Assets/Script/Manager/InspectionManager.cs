@@ -731,6 +731,8 @@ public class InspectionManager : MonoBehaviour
             isDescriptionWrong = currentItemData.isDescriptionWrong,
             isAppraisalMission1 = currentItemData.isAppraisalMission1,
             isAppraisalMission2 = currentItemData.isAppraisalMission2,
+            mission1Name = currentItemData.resultMission1Name ?? "",
+            mission2Name = currentItemData.resultMission2Name ?? "",
 
             checkedDamaged = damagedCircleMark != null && damagedCircleMark.activeSelf,
             checkedDescriptionWrong = customerDescriptionCircleMark != null && customerDescriptionCircleMark.activeSelf,
