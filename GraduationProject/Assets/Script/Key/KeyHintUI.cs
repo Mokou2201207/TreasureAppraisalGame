@@ -118,6 +118,14 @@ public class KeyHintUI : MonoBehaviour
             return radio.IsPowerOn ? "RadioOn" : "RadioOff";
         }
 
+        //車（PlayerLookの車と同じく、CarToBlackMarketが付いた物）を調べる
+        CarToBlackMarket blackMarketCar = hit.collider.GetComponentInParent<CarToBlackMarket>();
+        if (blackMarketCar != null)
+        {
+            target = blackMarketCar.gameObject;
+            return "Car";
+        }
+
         SceneTeleporter car = hit.collider.GetComponentInParent<SceneTeleporter>();
         if (car != null)
         {
@@ -138,6 +146,7 @@ public class KeyHintUI : MonoBehaviour
             OpenSignSwitch sign = hit.collider.GetComponentInParent<OpenSignSwitch>();
             if (sign == null) return "None";
             target = sign.gameObject;
+            if (!sign.isOpen && !sign.CanOpen) return "SignLocked";
             return sign.isOpen ? "SignOpen" : "SignClosed";
         }
 
@@ -329,7 +338,7 @@ public class KeyHintUI : MonoBehaviour
                 AddRow("ラジオをつける", eKeyIcon);
                 break;
             case "Car":
-                AddRow("オークションへ行く", leftClickIcon);
+                AddRow("借金取りの事務所へ行く", leftClickIcon);
                 break;
             case "Board":
                 AddRow("掲示板を見る", leftClickIcon);
@@ -339,6 +348,9 @@ public class KeyHintUI : MonoBehaviour
                 break;
             case "SignClosed":
                 AddRow("看板をOPENにする", leftClickIcon);
+                break;
+            case "SignLocked":
+                AddRow("今日は返済日。お店は開けない", leftClickIcon);
                 break;
             case "DoorOpen":
                 AddRow("ドアを閉める", leftClickIcon);

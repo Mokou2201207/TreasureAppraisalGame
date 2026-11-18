@@ -18,7 +18,15 @@ public class MonayManager : MonoBehaviour
     [SerializeField] private int[] targetMoneys = {3000,6000,10000};
 
     //今のミッションの目標金額
-    private int targetMoney => targetMoneys[DayManager.Instance.currentQuotaIndex];
+    private int targetMoney => targetMoneys[DayManager.Instance.currentQuotaIndex] + borrowedDebt;
+
+    //借りたお金の分、次の返済に上乗せされる額
+    private int borrowedDebt = 0;
+    public int BorrowedDebt => borrowedDebt;
+
+    //次に貸してもらえる段階（返済できたら最初に戻る）
+    private int borrowStep = 0;
+    public int BorrowStep => borrowStep;
 
     //今持ってるお金を取得するプロパティ
     public int CurrentMonay => currentMonay;
@@ -67,6 +75,8 @@ public class MonayManager : MonoBehaviour
 
         //目標の額を払って、次の返済の目標へ進める
         currentMonay -= targetMoney;
+        borrowedDebt = 0;
+        borrowStep = 0;
         DayManager.Instance.currentQuotaIndex++;
 
         //残り日数を3日に戻して、次の返済まで数え直す
@@ -80,6 +90,25 @@ public class MonayManager : MonoBehaviour
     public void ResetMonay()
     {
         currentMonay = StartMonay;
+        borrowedDebt = 0;
+        borrowStep = 0;
+    }
+
+    /// <summary>
+    /// お金を借りる処理（借りたお金はすぐ手に入り、次の返済に「借りた額×倍率」が上乗せされる）
+    /// </summary>
+    public void Borrow(int amount, int rate)
+    {
+        currentMonay += amount;
+        borrowedDebt += amount * rate;
+    }
+
+    /// <summary>
+    /// 貸してもらえる段階を1つ進める処理（次に借りるときは、次の額になる）
+    /// </summary>
+    public void AdvanceBorrowStep()
+    {
+        borrowStep++;
     }
 
     /// <summary>
@@ -108,6 +137,6 @@ public class MonayManager : MonoBehaviour
         int index = DayManager.Instance.currentQuotaIndex;
         if (index >= targetMoneys.Length) return $"{currentMonay}$";
 
-        return $"{currentMonay}$/{targetMoneys[index]}$";
+        return $"{currentMonay}$/{targetMoneys[index] + borrowedDebt}$";
     }
 }

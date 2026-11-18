@@ -43,7 +43,11 @@ public class Respawn : MonoBehaviour
     {
         //このシーンにいるお客さんの数を数える
         MoveWaypoint[] activeCustomers = FindObjectsOfType<MoveWaypoint>();
-        if (activeCustomers.Length >= maxCustomer)
+        //返済日は、お客さんは来ない（次の出現の予約だけ続ける）
+        if (DayManager.Instance != null && DayManager.Instance.IsRepaymentDay)
+        {
+        }
+        else if (activeCustomers.Length >= maxCustomer)
         {
             Debug.Log("お客さんがいっぱいで行列が満員のため、新しいお客さんは来ませんでした。");
         }

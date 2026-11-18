@@ -198,12 +198,6 @@ public class BedSleep : MonoBehaviour
         if (fadeAnimator != null) fadeAnimator.SetBool(fadeParameter, false);
         yield return WaitForFade(false);
 
-        //返済の日（4日目の朝）なら、怖い人が来て返済の流れを出す
-        if (DayManager.Instance != null && DayManager.Instance.IsRepaymentDay && RepaymentUI.Instance != null)
-        {
-            yield return RepaymentUI.Instance.Run();
-        }
-
         //次の日になったので視点を動かせるように戻す
         SetPlayerLookActive(true);
         IsSleeping = false;

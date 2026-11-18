@@ -17,6 +17,18 @@ public class AuctionManager : MonoBehaviour
     //まだ受け取っていない結果があるか
     public bool HasResults => results.Count > 0;
 
+    [Header("売れる値段の倍率（X:最小〜Y:最大。最高金額にかける）")]
+    [Header("チェックが全部合っているとき"), SerializeField]
+    private Vector2 rateWrong0 = new Vector2(1.20f, 1.30f);
+    [Header("チェックの間違いが1つのとき"), SerializeField]
+    private Vector2 rateWrong1 = new Vector2(1.05f, 1.10f);
+    [Header("チェックの間違いが2つのとき"), SerializeField]
+    private Vector2 rateWrong2 = new Vector2(0.80f, 0.90f);
+    [Header("チェックの間違いが3つのとき"), SerializeField]
+    private Vector2 rateWrong3 = new Vector2(0.40f, 0.60f);
+    [Header("チェックが全部違うとき"), SerializeField]
+    private Vector2 rateWrong4 = new Vector2(0.20f, 0.20f);
+
     private void Awake()
     {
         if (Instance == null)
@@ -81,20 +93,20 @@ public class AuctionManager : MonoBehaviour
     /// </summary>
     public static int CalculateSoldPrice(float highestPrice, int wrongCount)
     {
-        float rate;
+        //間違いの数で、Inspectorで決めた倍率の範囲を選ぶ（AuctionManagerがなければ最初の値を使う）
+        Vector2 range;
+        AuctionManager m = Instance;
         switch (wrongCount)
         {
-            //全部合っていたら20〜30%上がる
-            case 0: rate = Random.Range(1.20f, 1.30f); break;
-            //1つ違いは5〜10%上がる
-            case 1: rate = Random.Range(1.05f, 1.10f); break;
-            //2つ違いは10〜20%下がる
-            case 2: rate = Random.Range(0.80f, 0.90f); break;
-            //3つ違いは40〜60%下がる
-            case 3: rate = Random.Range(0.40f, 0.60f); break;
-            //4つ全部違いは80%下がる
-            default: rate = 0.20f; break;
+            case 0: range = m != null ? m.rateWrong0 : new Vector2(1.20f, 1.30f); break;
+            case 1: range = m != null ? m.rateWrong1 : new Vector2(1.05f, 1.10f); break;
+            case 2: range = m != null ? m.rateWrong2 : new Vector2(0.80f, 0.90f); break;
+            case 3: range = m != null ? m.rateWrong3 : new Vector2(0.40f, 0.60f); break;
+            default: range = m != null ? m.rateWrong4 : new Vector2(0.20f, 0.20f); break;
         }
+
+        //範囲の中でランダムに倍率を決める
+        float rate = Random.Range(Mathf.Min(range.x, range.y), Mathf.Max(range.x, range.y));
         return Mathf.RoundToInt(highestPrice * rate);
     }
 

@@ -123,6 +123,20 @@ public class PlayerLook : MonoBehaviour
                 return;
             }
 
+            //車に触れているかの判定
+            int carLayer = LayerMask.NameToLayer("Car");
+            if (hit.collider.gameObject.layer == carLayer)
+            {
+                CarToBlackMarket car = hit.collider.GetComponentInParent<CarToBlackMarket>();
+
+                //車を発信
+                if (Input.GetMouseButtonDown(0)&&!car.isGoCar)
+                {
+                    car.GoCar();
+                }
+                return;
+            }
+
 
             // お宝判定の検索
             ItemData treasure = hit.collider.GetComponent<ItemData>();

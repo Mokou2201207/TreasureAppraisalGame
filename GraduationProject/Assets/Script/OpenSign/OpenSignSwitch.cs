@@ -15,6 +15,8 @@ public class OpenSignSwitch : MonoBehaviour
     private Animator animator;
     //看板をOpenにするかCloseにするかのフラグ
     public bool isOpen = false;
+    //お店を開けられるか（返済日は開けられない）
+    public bool CanOpen => DayManager.Instance == null || !DayManager.Instance.IsRepaymentDay;
     //看板が動き終わるまでの時間
     [SerializeField] private float moveTime = 0.6f;
     //次に押せるようになる時間
@@ -40,6 +42,9 @@ public class OpenSignSwitch : MonoBehaviour
     {
         // 動いている途中は押しても受け付けない
         if (Time.time < nextToggleTime) return;
+
+        //返済日は、お店を開けられない（閉めるのはできる）
+        if (!isOpen && !CanOpen) return;
 
         nextToggleTime = Time.time + moveTime;
         isOpen = !isOpen;

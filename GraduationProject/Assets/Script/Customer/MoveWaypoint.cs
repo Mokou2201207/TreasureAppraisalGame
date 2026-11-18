@@ -278,6 +278,12 @@ public class MoveWaypoint : MonoBehaviour
             return;
         }
 
+        //消えた（Missingになった）ポイントは飛ばして、次のポイントへ進む
+        while (currentIndex < route.Length && route[currentIndex] == null)
+        {
+            currentIndex++;
+        }
+
         if (currentIndex >= route.Length)
         {
             Destroy(gameObject);
