@@ -380,6 +380,14 @@ public class DebtTalk : MonoBehaviour
     /// </summary>
     private void GameOver()
     {
+        //ゲームオーバーの演出があれば、それを使う（残った借金の額を新聞に出す）
+        if (GameOverSequence.Instance != null)
+        {
+            GameOverSequence.Instance.Play(shownDebt);
+            return;
+        }
+
+        //演出がないときは、今までのゲームオーバーの画面を出す
         if (gameOverPanel != null) gameOverPanel.SetActive(true);
         BlackMarketSound.PlayClip(gameOverSE);
     }
