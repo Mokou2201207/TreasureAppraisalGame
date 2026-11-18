@@ -11,7 +11,8 @@ public class MonayManager : MonoBehaviour
     public static MonayManager Instance { get; private set; }
 
     //今持ってるお金
-    [SerializeField]private int currentMonay = 1000;
+    private const int StartMonay = 1000;
+    [SerializeField]private int currentMonay = StartMonay;
 
     // 今のミッションの目標金額
     [SerializeField] private int[] targetMoneys = {3000,6000,10000};
@@ -21,6 +22,12 @@ public class MonayManager : MonoBehaviour
 
     //今持ってるお金を取得するプロパティ
     public int CurrentMonay => currentMonay;
+
+    //今の返済の目標額（全部返し終えていたら0）
+    public int CurrentTargetMoney => IsAllCleared ? 0 : targetMoney;
+
+    //全部の返済を終えたか
+    public bool IsAllCleared => DayManager.Instance != null && DayManager.Instance.currentQuotaIndex >= targetMoneys.Length;
 
     private void Awake()
     {
@@ -53,30 +60,26 @@ public class MonayManager : MonoBehaviour
     /// <summary>
     /// 返済するときのマネー
     /// </summary>
-    public void RepaymentMonay()
+    public bool TryRepay()
     {
-        if (currentMonay >= targetMoney)
-        {
-            // 返済して次のノルマへ
-            Debug.Log("返済成功");
-            currentMonay-=targetMoney;
-            DayManager.Instance.currentQuotaIndex++;
+        if (IsAllCleared) return true;
+        if (currentMonay < targetMoney) return false;
 
-            //すべてのミッションをクリアした場合はゲームクリア
-            if (DayManager.Instance.currentQuotaIndex>=targetMoneys.Length)
-            {
-                //ゲームクリアの関数を入れる予定
-                return;
-            }
+        //目標の額を払って、次の返済の目標へ進める
+        currentMonay -= targetMoney;
+        DayManager.Instance.currentQuotaIndex++;
 
-            //残り日数をリセット
-            DayManager.Instance.ResetDay();
-        }
-        else
-        {
-            // 失敗：ゲームオーバー
-            Debug.Log("ゲームオーバー");
-        }
+        //残り日数を3日に戻して、次の返済まで数え直す
+        DayManager.Instance.ResetDay();
+        return true;
+    }
+
+    /// <summary>
+    /// 最初のお金に戻す（やり直し用）
+    /// </summary>
+    public void ResetMonay()
+    {
+        currentMonay = StartMonay;
     }
 
     /// <summary>

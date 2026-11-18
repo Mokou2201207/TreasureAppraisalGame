@@ -14,6 +14,9 @@ public class DayManager : MonoBehaviour
     // 今何個目のミッションか
     public int currentQuotaIndex = 0;
 
+    //今日は返済の日か（残り日数が0になったら、次の朝に返済）
+    public bool IsRepaymentDay => dayCount <= 0;
+
     private void Awake()
     {
         if (Instance == null)
@@ -54,12 +57,6 @@ public class DayManager : MonoBehaviour
         if (dayCount <= 0) return;
 
         dayCount--;
-
-        //残り日数が０になったら金額が足りているかの関数へ
-        if (dayCount==0)
-        {
-            MonayManager.Instance.RepaymentMonay();
-        }
     }
 
     /// <summary>
@@ -68,6 +65,15 @@ public class DayManager : MonoBehaviour
     public void ResetDay()
     {
         dayCount = 3;
+    }
+
+    /// <summary>
+    /// 最初からやり直すための初期化
+    /// </summary>
+    public void ResetAll()
+    {
+        currentQuotaIndex = 0;
+        ResetDay();
     }
 
 }
