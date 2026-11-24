@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 /// <summary>
@@ -52,6 +53,12 @@ public class GameOverSequence : MonoBehaviour
     [SerializeField]
     private string daysLater = "数日後――";
 
+    [Header("「クリックでタイトルへ」などの案内（なくてもよい。最初は隠す）"), SerializeField]
+    private GameObject clickHint;
+
+    [Header("クリックしたら戻るタイトルのシーン名"), SerializeField]
+    private string titleSceneName = "TitleScene";
+
     [Header("暗転したときの重い音"), SerializeField]
     private AudioClip impactSE;
 
@@ -85,6 +92,7 @@ public class GameOverSequence : MonoBehaviour
 
         //演出を始めるときに表示されて動き出した場合は、隠さない
         if (!IsPlaying && gameOverRoot != null) gameOverRoot.SetActive(false);
+        if (clickHint != null) clickHint.SetActive(false);
     }
 
     private void OnDestroy()
@@ -149,9 +157,42 @@ public class GameOverSequence : MonoBehaviour
         yield return new WaitForSeconds(gameOverDelay);
         yield return StampIn();
 
-        //カーソルを出しておく（あとでボタンを足すとき用）
+        //カーソルを出して、案内を出す
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
+        if (clickHint != null) clickHint.SetActive(true);
+
+        //ハンコのあと少し待ってから、画面がクリックされるまで待つ（押した勢いで進まないように）
+        yield return new WaitForSeconds(0.5f);
+        while (!Input.GetMouseButtonDown(0)) yield return null;
+
+        ReturnToTitle();
+    }
+
+    /// <summary>
+    /// タイトルに戻る処理（止めた音を戻し、お金や日にちのマネージャーを消してからシーンを移る）
+    /// </summary>
+    private void ReturnToTitle()
+    {
+        //止めていた音と、マップの音量を元に戻す
+        AudioListener.pause = false;
+        BlackMarketSound.Unmute();
+
+        //シーンをまたいで残るマネージャーを消す（次に遊ぶときは、MainSceneで新しく作られる）
+        DestroyRoot(DayManager.Instance);
+        DestroyRoot(MonayManager.Instance);
+        DestroyRoot(AuctionManager.Instance);
+
+        SceneManager.LoadScene(titleSceneName);
+    }
+
+    /// <summary>
+    /// マネージャーが付いている物を、一番上の親ごと消す処理
+    /// </summary>
+    private void DestroyRoot(Component manager)
+    {
+        if (manager == null) return;
+        Destroy(manager.transform.root.gameObject);
     }
 
     /// <summary>
