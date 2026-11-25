@@ -30,10 +30,10 @@ public class NegotiationManager : MonoBehaviour
     [SerializeField] private Button backToInspectionButton;
 
     [Header("失敗確率計算設定")]
-    [Tooltip("基本失敗確率（パーセント）")]
-    [SerializeField] private float baseFailureRate = 30f;
-    [Tooltip("基準額から1000$安くするごとの失敗確率上昇（パーセント）")]
-    [SerializeField] private float priceFailureRatePer1000 = 2f;
+    [Tooltip("ここまでの値引きなら失敗しない割合（0.1 = 1割引きまで安全）")]
+    [SerializeField, Range(0f, 0.9f)] private float safeDiscountRate = 0.1f;
+    [Tooltip("失敗確率の上がり方（1 = まっすぐ。大きいほど、少しの値引きは安全で、大きく値引くと急に上がる）")]
+    [SerializeField, Range(0.5f, 3f)] private float failureCurvePower = 1f;
 
     [Header("鑑定料設定")]
     [Tooltip("1回の鑑定でかかる鑑定料（交渉が決裂しても支払う）")]
@@ -227,11 +227,23 @@ public class NegotiationManager : MonoBehaviour
     /// </summary>
     public float CalculateFailureRate()
     {
-        float rate = baseFailureRate;
+        // タダ（0$）なら、評価に関係なく必ず失敗
+        if (currentNegotiationPrice <= 0f) return 100f;
+        if (baseAppraisalPrice <= 0f) return 0f;
 
-        // 値段による変動（基準額より安く買い叩くほど失敗確率が上昇）
-        float priceDifference = baseAppraisalPrice - currentNegotiationPrice;
-        rate += (priceDifference / 1000f) * priceFailureRatePer1000;
+        // 基準の値段から何割値引きしているか（0 = 値引きなし、1 = タダ）
+        float discount = 1f - currentNegotiationPrice / baseAppraisalPrice;
+
+        // 安全な割合までは0%、そこからタダで100%になるように上がる
+        float rate = 0f;
+        if (discount > safeDiscountRate)
+        {
+            float k = Mathf.Clamp01((discount - safeDiscountRate) / (1f - safeDiscountRate));
+            rate = Mathf.Pow(k, failureCurvePower) * 100f;
+        }
+
+        // お店の評価で少しだけ上下する（評価が低いと上がり、高いと下がる）
+        if (rate > 0f && ReputationManager.Instance != null) rate += ReputationManager.Instance.NegotiationOffset;
 
         return Mathf.Clamp(rate, 0f, 100f);
     }
@@ -328,6 +340,9 @@ public class NegotiationManager : MonoBehaviour
 
         float failureRate = CalculateFailureRate();
         bool isSuccess = UnityEngine.Random.Range(0f, 100f) >= failureRate;
+
+        // 買い取りの成功・失敗で、お店の評価を変える
+        if (ReputationManager.Instance != null) ReputationManager.Instance.OnPurchase(isSuccess);
 
         // 鑑定料は結果にかかわらず支払い、成立したときだけ提示額も支払う
         if (MonayManager.Instance != null)

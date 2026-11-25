@@ -36,6 +36,9 @@ public class ItemData : MonoBehaviour
     [Header("結果の手紙に出す短いミッション名②")]
     public string resultMission2Name;
 
+    [Header("このお宝が出てくるのに必要な店の評価")]
+    public int requiredReputation = 0;
+
     [Header("基本最高金額の値段")]
     public float highestPrice;
     [Header("傷がついていた場合のマイナス値段")]

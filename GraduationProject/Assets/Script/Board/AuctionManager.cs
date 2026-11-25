@@ -66,6 +66,9 @@ public class AuctionManager : MonoBehaviour
             //チェックが合っていなかった数で売値を決めて、結果に入れる
             int wrongCount = CountWrongChecks(item);
             int soldPrice = CalculateSoldPrice(item.highestPrice, wrongCount);
+
+            //チェックの間違いの数で、お店の評価を変える
+            if (ReputationManager.Instance != null) ReputationManager.Instance.OnAuctionResult(wrongCount);
             results.Add(new AuctionResult { item = item, soldPrice = soldPrice, wrongCount = wrongCount });
 
             Debug.Log($"[AuctionManager] {item.itemName} が {soldPrice:N0}$ で売れました（チェックの間違い {wrongCount}個）");
