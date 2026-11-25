@@ -24,10 +24,6 @@ public class NegotiationManager : MonoBehaviour
     [SerializeField] private Button decreasePriceButton;
     [Tooltip("提示額で取引してお客さんを帰すボタン")]
     [SerializeField] private Button sendButton;
-    [Tooltip("交渉結果を表示するテキスト")]
-    [SerializeField] private Text resultText;
-    [Tooltip("押すと鑑定に戻るボタン（なくても右クリックで戻れる）")]
-    [SerializeField] private Button backToInspectionButton;
     [Tooltip("買い取らずにお客さんを帰らせるボタン（お金が足りないとき用。評価が下がる）")]
     [SerializeField] private Button sendHomeButton;
 
@@ -40,8 +36,20 @@ public class NegotiationManager : MonoBehaviour
     [Header("鑑定料設定")]
     [Tooltip("1回の鑑定でかかる鑑定料（交渉が決裂しても支払う）")]
     [SerializeField] private int appraisalFee = 2000;
-    [Tooltip("鑑定料を表示するテキスト")]
+    [Tooltip("鑑定料（金額だけ）を表示するテキスト")]
     [SerializeField] private Text appraisalFeeText;
+
+    [Header("支払いの表示")]
+    [Tooltip("支払い（交渉値段＋鑑定料）を表示するテキスト")]
+    [SerializeField] private Text totalPriceText;
+    [Tooltip("お金が足りないときだけ出す物（「お金が足りません」の文字など）")]
+    [SerializeField] private GameObject notEnoughMoneyObject;
+    [Tooltip("お金が足りないときの文字の色")]
+    [SerializeField] private Color notEnoughColor = new Color(0.94f, 0.27f, 0.24f);
+
+    // 支払いの、ふだんの文字の色（最初の色を覚えておく）
+    private Color totalNormalColor;
+    private bool colorsSaved = false;
 
     // 今の鑑定料
     public int AppraisalFee => appraisalFee;
@@ -107,12 +115,6 @@ public class NegotiationManager : MonoBehaviour
             sendButton.onClick.AddListener(OnSendButtonClicked);
         }
 
-        if (backToInspectionButton != null)
-        {
-            backToInspectionButton.onClick.RemoveListener(BackToInspection);
-            backToInspectionButton.onClick.AddListener(BackToInspection);
-        }
-
         if (sendHomeButton != null)
         {
             sendHomeButton.onClick.RemoveListener(SendCustomerHome);
@@ -143,8 +145,6 @@ public class NegotiationManager : MonoBehaviour
             if (decreasePriceButton == null) decreasePriceButton = FindComponentInChildren<Button>(appraisalAcceptancePanel, "DecreasePriceButton", "PriceDownButton", "DownButton");
             if (sendButton == null) sendButton = FindComponentInChildren<Button>(appraisalAcceptancePanel, "SendButton", "DecideButton", "OkButton");
             if (appraisalFeeText == null) appraisalFeeText = FindComponentInChildren<Text>(appraisalAcceptancePanel, "AppraisalFeeText", "FeeText");
-            if (resultText == null) resultText = FindComponentInChildren<Text>(appraisalAcceptancePanel, "ResultText", "NegotiationResultText");
-            if (backToInspectionButton == null) backToInspectionButton = FindComponentInChildren<Button>(appraisalAcceptancePanel, "BackToInspectionButton", "BackButton");
             if (sendHomeButton == null) sendHomeButton = FindComponentInChildren<Button>(appraisalAcceptancePanel, "SendHomeButton", "GoHomeButton", "RefuseButton");
         }
     }
@@ -192,7 +192,6 @@ public class NegotiationManager : MonoBehaviour
 
         isResolving = false;
         openedFrame = Time.frameCount;
-        if (resultText != null) resultText.text = string.Empty;
 
         // UI表示を更新
         UpdateNegotiationUI();
@@ -269,7 +268,7 @@ public class NegotiationManager : MonoBehaviour
 
         if (appraisalFeeText != null)
         {
-            appraisalFeeText.text = $"鑑定料：{appraisalFee:N0}$";
+            appraisalFeeText.text = $"{appraisalFee:N0}$";
         }
 
         float failureRate = CalculateFailureRate();
@@ -277,6 +276,35 @@ public class NegotiationManager : MonoBehaviour
         {
             failureRateText.text = $"{Mathf.RoundToInt(100f - failureRate)}%";
         }
+
+        UpdatePaymentUI();
+    }
+
+    /// <summary>
+    /// 支払い（交渉値段＋鑑定料）を出して、足りないときは赤くして買取を押せなくする処理
+    /// </summary>
+    private void UpdatePaymentUI()
+    {
+        // ふだんの文字の色を、最初に1回だけ覚えておく
+        if (!colorsSaved)
+        {
+            if (totalPriceText != null) totalNormalColor = totalPriceText.color;
+            colorsSaved = true;
+        }
+
+        int total = Mathf.RoundToInt(currentNegotiationPrice) + appraisalFee;
+        int money = MonayManager.Instance != null ? MonayManager.Instance.CurrentMonay : int.MaxValue;
+        bool isEnough = money >= total;
+
+        if (totalPriceText != null)
+        {
+            totalPriceText.text = $"{total:N0}$";
+            totalPriceText.color = isEnough ? totalNormalColor : notEnoughColor;
+        }
+
+        // 足りないときだけ「お金が足りません」を出して、買取を押せなくする
+        if (notEnoughMoneyObject != null) notEnoughMoneyObject.SetActive(!isEnough);
+        if (sendButton != null) sendButton.interactable = isEnough;
     }
 
     /// <summary>
@@ -367,7 +395,6 @@ public class NegotiationManager : MonoBehaviour
         // 鑑定料と提示額を合わせた金額が所持金に足りないときは交渉せず、値段を下げてもらう
         if (MonayManager.Instance != null && MonayManager.Instance.CurrentMonay < total)
         {
-            if (resultText != null) resultText.text = "お金が足りません（鑑定料込み）";
             isResolving = false;
             return;
         }
@@ -396,11 +423,6 @@ public class NegotiationManager : MonoBehaviour
         {
             record.paidPrice = price;
             InventoryManager.Instance.AddItem(record);
-        }
-
-        if (resultText != null)
-        {
-            resultText.text = isSuccess ? "交渉成立！" : "交渉決裂…";
         }
 
         OnNegotiationResolved?.Invoke(isSuccess, currentNegotiationPrice);
