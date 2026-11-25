@@ -18,6 +18,9 @@ public class ReputationManager : MonoBehaviour
     [SerializeField]
     private int purchaseFailDelta = -2;
 
+    [Header("交渉でお客さんを帰らせたときに変わる量"), SerializeField]
+    private int sendHomeDelta = -3;
+
     [Header("オークションで×がこの数以上なら評価が下がる（未満なら上がる）"), SerializeField]
     private int badWrongCount = 2;
 
@@ -76,6 +79,14 @@ public class ReputationManager : MonoBehaviour
     public void OnPurchase(bool isSuccess)
     {
         Add(isSuccess ? purchaseSuccessDelta : purchaseFailDelta);
+    }
+
+    /// <summary>
+    /// 交渉でお客さんを帰らせたときに評価を変える処理（看板を閉めて帰すときは呼ばない）
+    /// </summary>
+    public void OnSendHome()
+    {
+        Add(sendHomeDelta);
     }
 
     /// <summary>

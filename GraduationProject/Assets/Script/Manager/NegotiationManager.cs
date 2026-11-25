@@ -14,7 +14,7 @@ public class NegotiationManager : MonoBehaviour
     [Header("交渉パラメータ・UI設定")]
     [Tooltip("交渉パネル")]
     [SerializeField] private GameObject appraisalAcceptancePanel;
-    [Tooltip("交渉失敗確率を表示するテキスト")]
+    [Tooltip("交渉の成功確率を表示するテキスト")]
     [SerializeField] private Text failureRateText;
     [Tooltip("現在の交渉提示額を表示するテキスト")]
     [SerializeField] private Text negotiationPriceText;
@@ -28,6 +28,8 @@ public class NegotiationManager : MonoBehaviour
     [SerializeField] private Text resultText;
     [Tooltip("押すと鑑定に戻るボタン（なくても右クリックで戻れる）")]
     [SerializeField] private Button backToInspectionButton;
+    [Tooltip("買い取らずにお客さんを帰らせるボタン（お金が足りないとき用。評価が下がる）")]
+    [SerializeField] private Button sendHomeButton;
 
     [Header("失敗確率計算設定")]
     [Tooltip("ここまでの値引きなら失敗しない割合（0.1 = 1割引きまで安全）")]
@@ -110,6 +112,12 @@ public class NegotiationManager : MonoBehaviour
             backToInspectionButton.onClick.RemoveListener(BackToInspection);
             backToInspectionButton.onClick.AddListener(BackToInspection);
         }
+
+        if (sendHomeButton != null)
+        {
+            sendHomeButton.onClick.RemoveListener(SendCustomerHome);
+            sendHomeButton.onClick.AddListener(SendCustomerHome);
+        }
     }
 
     /// <summary>
@@ -137,6 +145,7 @@ public class NegotiationManager : MonoBehaviour
             if (appraisalFeeText == null) appraisalFeeText = FindComponentInChildren<Text>(appraisalAcceptancePanel, "AppraisalFeeText", "FeeText");
             if (resultText == null) resultText = FindComponentInChildren<Text>(appraisalAcceptancePanel, "ResultText", "NegotiationResultText");
             if (backToInspectionButton == null) backToInspectionButton = FindComponentInChildren<Button>(appraisalAcceptancePanel, "BackToInspectionButton", "BackButton");
+            if (sendHomeButton == null) sendHomeButton = FindComponentInChildren<Button>(appraisalAcceptancePanel, "SendHomeButton", "GoHomeButton", "RefuseButton");
         }
     }
 
@@ -266,7 +275,7 @@ public class NegotiationManager : MonoBehaviour
         float failureRate = CalculateFailureRate();
         if (failureRateText != null)
         {
-            failureRateText.text = $"{Mathf.RoundToInt(failureRate)}%";
+            failureRateText.text = $"{Mathf.RoundToInt(100f - failureRate)}%";
         }
     }
 
@@ -308,6 +317,31 @@ public class NegotiationManager : MonoBehaviour
         {
             appraisalAcceptancePanel.SetActive(false);
         }
+    }
+
+    /// <summary>
+    /// 買い取らずにお客さんを帰らせる処理（鑑定料は取らない。お店の評価は下がる）
+    /// </summary>
+    public void SendCustomerHome()
+    {
+        if (isResolving || Time.timeScale == 0f) return;
+        isResolving = true;
+
+        // お客さんを帰らせたので、お店の評価を下げる
+        if (ReputationManager.Instance != null) ReputationManager.Instance.OnSendHome();
+
+        // 鑑定の記録は使わないので捨てる
+        if (InspectionManager.Instance != null)
+        {
+            InspectionManager.Instance.TakeAppraisalRecord();
+            InspectionManager.Instance.FinishCustomerWithoutBuying();
+        }
+        else
+        {
+            HideAppraisalAcceptancePanel();
+        }
+
+        isResolving = false;
     }
 
     /// <summary>
