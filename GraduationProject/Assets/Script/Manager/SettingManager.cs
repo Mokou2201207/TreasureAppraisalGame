@@ -32,6 +32,14 @@ public class SettingManager : MonoBehaviour
         settingObj.SetActive(false);
         optionsSettingObj.SetActive(false);
     }
+    // Locks the cursor for play, but keeps it visible while in the black market
+    private void ApplyGameCursor()
+    {
+        bool inMarket = CarToBlackMarket.IsInMarketNow;
+        Cursor.lockState = inMarket ? CursorLockMode.None : CursorLockMode.Locked;
+        Cursor.visible = inMarket;
+    }
+
     private void Update()
     {
         if (Input.GetKeyDown(KeyCode.Escape))
@@ -64,8 +72,7 @@ public class SettingManager : MonoBehaviour
                 Time.timeScale = 1f;
 
                 //カーソルを非表示
-                Cursor.lockState = CursorLockMode.Locked;
-                Cursor.visible = false;
+                ApplyGameCursor();
             }
             else
             {
@@ -76,8 +83,7 @@ public class SettingManager : MonoBehaviour
                 Time.timeScale = 1f;
 
                 //カーソルを非表示
-                Cursor.lockState = CursorLockMode.Locked;
-                Cursor.visible = false;
+                ApplyGameCursor();
             }
 
         }
@@ -95,8 +101,7 @@ public class SettingManager : MonoBehaviour
         Time.timeScale = 1f;
 
         //カーソルを非表示
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
+        ApplyGameCursor();
     }
 
     /// <summary>

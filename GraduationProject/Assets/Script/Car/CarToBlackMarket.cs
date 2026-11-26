@@ -40,6 +40,9 @@ public class CarToBlackMarket : MonoBehaviour
     //ˆÅŽs‚Ì’†‚É‚¢‚é‚©‚Ç‚¤‚©
     private bool isInMarket = false;
 
+    // Used by SettingManager (ESC menu) to keep the cursor visible while in the black market
+    public static bool IsInMarketNow { get; private set; }
+
 
     private void Start()
     {
@@ -118,6 +121,7 @@ public class CarToBlackMarket : MonoBehaviour
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
         isInMarket = true;
+        IsInMarketNow = true;
 
         //ŽØ‹àŽæ‚è‚Æ‚Ì‰ï˜b‚ðŽn‚ß‚é
         if (DebtTalk.Instance != null) DebtTalk.Instance.Begin();
@@ -131,6 +135,7 @@ public class CarToBlackMarket : MonoBehaviour
         //ˆÅŽs‚É‚¢‚é‚Æ‚«‚¾‚¯–ß‚ê‚é
         if (!isInMarket) return;
         isInMarket = false;
+        IsInMarketNow = false;
 
         StartCoroutine(ReturnRoutine());
     }
