@@ -26,6 +26,8 @@ public class NegotiationManager : MonoBehaviour
     [SerializeField] private Button sendButton;
     [Tooltip("買い取らずにお客さんを帰らせるボタン（お金が足りないとき用。評価が下がる）")]
     [SerializeField] private Button sendHomeButton;
+    [Tooltip("お客さんを帰らせたときの音")]
+    [SerializeField] private AudioClip sendHomeSE;
 
     [Header("失敗確率計算設定")]
     [Tooltip("ここまでの値引きなら失敗しない割合（0.1 = 1割引きまで安全）")]
@@ -355,6 +357,9 @@ public class NegotiationManager : MonoBehaviour
         if (isResolving || Time.timeScale == 0f) return;
         isResolving = true;
 
+        // 帰らせたときの音を鳴らす
+        PlaySE(sendHomeSE);
+
         // お客さんを帰らせたので、お店の評価を下げる
         if (ReputationManager.Instance != null) ReputationManager.Instance.OnSendHome();
 
@@ -440,5 +445,19 @@ public class NegotiationManager : MonoBehaviour
         }
 
         isResolving = false;
+    }
+
+    /// <summary>
+    /// 音を鳴らす処理（画面を閉じても音が止まらないように、音だけの別のオブジェクトで鳴らす）
+    /// </summary>
+    private void PlaySE(AudioClip clip)
+    {
+        if (clip == null) return;
+
+        GameObject seObject = new GameObject("SE_" + clip.name);
+        AudioSource source = seObject.AddComponent<AudioSource>();
+        source.spatialBlend = 0f;
+        source.PlayOneShot(clip);
+        Destroy(seObject, clip.length + 0.5f);
     }
 }

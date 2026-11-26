@@ -111,6 +111,9 @@ public class DebtTalk : MonoBehaviour
     [Header("返済できたとき"), SerializeField, TextArea]
     private string[] repaidLines = { "……確かに {借金}$、受け取った。", "次の期限も守れよ。" };
 
+    [Header("最後の返済で、借金を全部返し終えたとき"), SerializeField, TextArea]
+    private string[] allRepaidLines = { "……確かに {借金}$、受け取った。", "まさか、本当に全部返しきるとはな。", "これで貸し借りはなしだ。……せいぜい、店を潰すなよ。" };
+
     [Header("返済日にお金が足りなかったとき（ゲームオーバー）"), SerializeField, TextArea]
     private string[] shortOnRepaymentDayLines = { "……足りないじゃないか。", "約束は約束だ。覚悟はできているな？" };
 
@@ -250,6 +253,12 @@ public class DebtTalk : MonoBehaviour
             if (choice == 0 && CanPay())
             {
                 Pay();
+                if (IsAllRepaid())
+                {
+                    yield return ShowLines(allRepaidLines);
+                    GameClearTransition.Begin();
+                    yield break;
+                }
                 yield return ShowLines(repaidLines);
                 Finish();
             }
@@ -273,6 +282,12 @@ public class DebtTalk : MonoBehaviour
             if (choice == 0 && CanPay())
             {
                 Pay();
+                if (IsAllRepaid())
+                {
+                    yield return ShowLines(allRepaidLines);
+                    GameClearTransition.Begin();
+                    yield break;
+                }
                 yield return ShowLines(repaidLines);
             }
             else if (choice == 0)
@@ -363,6 +378,14 @@ public class DebtTalk : MonoBehaviour
         shownDebt = MonayManager.Instance.CurrentTargetMoney;
         MonayManager.Instance.TryRepay();
         BlackMarketSound.PlayClip(moneySE);
+    }
+
+    /// <summary>
+    /// 借金を全部返し終えたか（最後の返済が済んだか）
+    /// </summary>
+    private bool IsAllRepaid()
+    {
+        return MonayManager.Instance != null && MonayManager.Instance.IsAllCleared;
     }
 
     /// <summary>
