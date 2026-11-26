@@ -97,12 +97,28 @@ public class GameClearTransition : MonoBehaviour
         yield return FadeText(1f, 0f);
         yield return new WaitForSecondsRealtime(0.4f);
 
+        //お店のマネージャー（お客さんの出現・時計など）はクリアシーンでは使わないので片付ける
+        //（残しておくと、クリアシーンでもお客さんを出そうとしてエラーになる）
+        DestroyRoot(DayManager.Instance);
+        DestroyRoot(MonayManager.Instance);
+        DestroyRoot(AuctionManager.Instance);
+        DestroyRoot(ReputationManager.Instance);
+        DestroyRoot(InventoryManager.Instance);
+
         //音を元に戻してから、クリアシーンへ（タイムラインはクリアシーンで自動で始まる）
         AudioListener.pause = false;
         BlackMarketSound.Unmute();
         AudioListener.volume = 1f;
         Time.timeScale = 1f;
         SceneManager.LoadScene(ClearSceneName);
+    }
+
+    private void DestroyRoot(Component manager)
+    {
+        if (manager == null) return;
+        GameObject root = manager.transform.root.gameObject;
+        if (root == gameObject) return;
+        Destroy(root);
     }
 
     private IEnumerator FadeText(float from, float to)

@@ -3888,7 +3888,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b39d16ae18db8cf4ab556bd9586a5830, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  currentMonay: 30000
+  currentMonay: 300000
   targetMoneys: 50c3000080380100c0d40100
 --- !u!1001 &989637173
 PrefabInstance:

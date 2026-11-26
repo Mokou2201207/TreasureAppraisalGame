@@ -44,8 +44,15 @@ public class ClearEndingUI : MonoBehaviour
     private float startTime;
     private bool isLoading;
 
+    private void Awake()
+    {
+        //別のシーンから移ってきたとき、環境光（影の部分を照らす光）が真っ黒にならないよう、空から計算し直す
+        DynamicGI.UpdateEnvironment();
+    }
+
     private void Start()
     {
+        DynamicGI.UpdateEnvironment();
         startTime = Time.time;
         if (titleLogo != null) titleLogo.alpha = 0f;
         if (screenFade != null) screenFade.alpha = 1f;
@@ -122,6 +129,7 @@ public class ClearEndingUI : MonoBehaviour
         DestroyRoot(MonayManager.Instance);
         DestroyRoot(AuctionManager.Instance);
         DestroyRoot(ReputationManager.Instance);
+        DestroyRoot(InventoryManager.Instance);
 
         SceneManager.LoadScene(titleSceneName);
     }

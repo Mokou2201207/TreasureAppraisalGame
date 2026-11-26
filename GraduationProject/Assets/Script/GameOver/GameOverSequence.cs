@@ -183,6 +183,7 @@ public class GameOverSequence : MonoBehaviour
         DestroyRoot(MonayManager.Instance);
         DestroyRoot(AuctionManager.Instance);
         DestroyRoot(ReputationManager.Instance);
+        DestroyRoot(InventoryManager.Instance);
 
         SceneManager.LoadScene(titleSceneName);
     }

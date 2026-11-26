@@ -486,6 +486,17 @@ public static class ClearCameraBuilder
         Debug.Log("[ClearCameraBuilder] エピローグを追加して保存しました。");
     }
 
+    [MenuItem("Tools/クリアシーン/テスト：プレイ中にクリアへ移る")]
+    private static void TestClearTransition()
+    {
+        if (!EditorApplication.isPlaying)
+        {
+            Debug.LogWarning("[ClearCameraBuilder] プレイ中に押してください（MainScene を再生してから）。");
+            return;
+        }
+        GameClearTransition.Begin();
+    }
+
     //---- 補助 ----
 
     private static void RemoveOld(PlayableDirector director, TimelineAsset timeline)
