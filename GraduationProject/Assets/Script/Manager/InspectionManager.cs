@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -660,12 +660,14 @@ public class InspectionManager : MonoBehaviour
     {
         // 1. Enterキー押下で「購入・買い取り決定＆お宝回収＆お客さん帰宅」処理
         // 2. 右クリックまたはESCでキャンセル/鑑定終了
-        if (isInspecting && Input.GetMouseButtonDown(1) && Time.frameCount != inspectionStartFrame)
+        //図鑑が開いている間は、鑑定を終えない（交渉に進まない）
+        if (isInspecting && !TreasureBookUI.IsBookOpenNow && Input.GetMouseButtonDown(1) && Time.frameCount != inspectionStartFrame)
         {
             EndInspection();
         }
 
-        if (isInspecting && Input.GetKeyDown(talkKey))
+        //図鑑が開いている間は、会話キーを受け付けない
+        if (isInspecting && !TreasureBookUI.IsBookOpenNow && Input.GetKeyDown(talkKey))
         {
             OnTalkKeyPressed();
         }

@@ -23,6 +23,9 @@ public class TreasureBookUI : MonoBehaviour
     //ページを開いているかどうか
     public bool isBookOpen = false;
 
+    //図鑑が開いているかを、他のスクリプトから見るための情報
+    public static bool IsBookOpenNow { get; private set; }
+
     void Start()
     {
         //格納
@@ -51,6 +54,15 @@ public class TreasureBookUI : MonoBehaviour
 
                 bookUI.SetActive(true);
                 isBookOpen = true;
+                IsBookOpenNow = true;
+
+                //お金の表示（MonayUI）を、図鑑より前に出す
+                GameObject monayUI = GameObject.Find("MonayUI");
+
+                if (monayUI != null)
+                {
+                    monayUI.transform.SetAsLastSibling();
+                }
                 //図鑑を開いている間は、プレイヤーの操作と視点を止める
                 SetPlayerControl(false);
                 //SEを鳴らす
@@ -67,8 +79,20 @@ public class TreasureBookUI : MonoBehaviour
 
                 bookUI.SetActive(false);
                 isBookOpen = false;
+
                 //図鑑を閉じたら、プレイヤーの操作と視点を戻す
-                SetPlayerControl(true);
+                IsBookOpenNow = false;
+
+                if (InspectionManager.Instance != null && InspectionManager.Instance.IsInspecting)
+                {
+                    //鑑定中は、移動と視点を止めたままにして、カーソルは出しておく
+                    Cursor.lockState = CursorLockMode.None;
+                    Cursor.visible = true;
+                }
+                else
+                {
+                    SetPlayerControl(true);
+                }
                 //SEを鳴らす
                 if (audioSource != null && closeSE != null)
                 {

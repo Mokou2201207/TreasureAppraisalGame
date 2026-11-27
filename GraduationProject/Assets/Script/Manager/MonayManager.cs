@@ -12,7 +12,7 @@ public class MonayManager : MonoBehaviour
 
     //今持ってるお金
     private const int StartMonay = 1000;
-    [SerializeField]private int currentMonay = StartMonay;
+    [SerializeField]public int currentMonay = StartMonay;
 
     // 今のミッションの目標金額
     [SerializeField] private int[] targetMoneys = {3000,6000,10000};

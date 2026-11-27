@@ -1259,7 +1259,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -2301,6 +2301,7 @@ GameObject:
   - component: {fileID: 401781465}
   - component: {fileID: 401781464}
   - component: {fileID: 401781463}
+  - component: {fileID: 401781466}
   m_Layer: 5
   m_Name: Img_BackGround (1)
   m_TagString: Untagged
@@ -2372,7 +2373,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1091957510}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 401781466}
+        m_TargetAssemblyTypeName: BookUnlock, Assembly-CSharp
+        m_MethodName: TryUnlock
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &401781464
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2411,6 +2424,21 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 401781461}
   m_CullTransparentMesh: 1
+--- !u!114 &401781466
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 401781461}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 471bc8b42ab8b1f449543a61cbd34892, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  lockedBlock: {fileID: 401781461}
+  monayManager: {fileID: 982717482}
+  unlockPrice: 10000
 --- !u!114 &405528347 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 3180789916132336638, guid: 799aad07603a4ce4a973afa4f068e98b,
@@ -4999,6 +5027,7 @@ GameObject:
   - component: {fileID: 1124153552}
   - component: {fileID: 1124153551}
   - component: {fileID: 1124153550}
+  - component: {fileID: 1124153553}
   m_Layer: 5
   m_Name: Img_BackGround (2)
   m_TagString: Untagged
@@ -5070,7 +5099,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 2040774158}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1124153553}
+        m_TargetAssemblyTypeName: BookUnlock, Assembly-CSharp
+        m_MethodName: TryUnlock
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1124153551
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5109,6 +5150,21 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1124153548}
   m_CullTransparentMesh: 1
+--- !u!114 &1124153553
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1124153548}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 471bc8b42ab8b1f449543a61cbd34892, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  lockedBlock: {fileID: 1124153548}
+  monayManager: {fileID: 982717482}
+  unlockPrice: 10000
 --- !u!1 &1131274694 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 740954113399794512, guid: 799aad07603a4ce4a973afa4f068e98b,
@@ -6898,6 +6954,7 @@ GameObject:
   - component: {fileID: 1536969828}
   - component: {fileID: 1536969827}
   - component: {fileID: 1536969826}
+  - component: {fileID: 1536969829}
   m_Layer: 5
   m_Name: Img_BackGround
   m_TagString: Untagged
@@ -6924,7 +6981,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 347.34555, y: 123.80001}
-  m_SizeDelta: {x: 494.5142, y: 381.6}
+  m_SizeDelta: {x: 512, y: 512}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1536969826
 MonoBehaviour:
@@ -6969,7 +7026,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 194795403}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1536969829}
+        m_TargetAssemblyTypeName: BookUnlock, Assembly-CSharp
+        m_MethodName: TryUnlock
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1536969827
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7008,6 +7077,21 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1536969824}
   m_CullTransparentMesh: 1
+--- !u!114 &1536969829
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1536969824}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 471bc8b42ab8b1f449543a61cbd34892, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  lockedBlock: {fileID: 1536969824}
+  monayManager: {fileID: 982717482}
+  unlockPrice: 10000
 --- !u!1001 &1537995371
 PrefabInstance:
   m_ObjectHideFlags: 0
